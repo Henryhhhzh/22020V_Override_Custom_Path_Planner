@@ -1,9 +1,9 @@
-import { Box, IconButton, Tooltip } from "@mui/material";
+import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { action } from "mobx";
 import { observer } from "mobx-react-lite";
 import { AnyControl, Control, EndControl } from "@core/Path";
 import { FormInputField, clampQuantity } from "@app/component.blocks/FormInputField";
-import { Quantity, UnitOfAngle, UnitOfLength } from "@core/Unit";
+import { Quantity, UnitConverter, UnitOfAngle, UnitOfLength } from "@core/Unit";
 import { boundHeading, findCentralPoint } from "@core/Calculation";
 import { Coordinate, CoordinateWithHeading, EuclideanTransformation, isCoordinateWithHeading } from "@core/Coordinate";
 import { PanelBuilderProps, PanelInstanceProps } from "@core/Layout";
@@ -19,6 +19,7 @@ import RotateRightIcon from "@mui/icons-material/RotateRight";
 import "./ControlConfigPanel.scss";
 import { PanelBox } from "@src/app/component.blocks/PanelBox";
 import { CoordinateSystemTransformation } from "@src/core/CoordinateSystem";
+import { ROBOT_SENSOR_LABELS, ROBOT_SENSOR_SIDES, RobotSensorSide, getRobotSensorReadings } from "@core/RobotSensors";
 
 const ControlConfigPanelBody = observer((props: {}) => {
   const { app } = getAppStores();
@@ -135,6 +136,29 @@ const ControlConfigPanelBody = observer((props: {}) => {
     }
   }
 
+  const robotSensorReadings =
+    app.gc.showRobot && app.robot.position.visible ? getRobotSensorReadings(app, app.robot.position) : undefined;
+  const uolToInch = new UnitConverter(app.gc.uol, UnitOfLength.Inch);
+  const getSensorLengthDisplay = (side: RobotSensorSide) =>
+    robotSensorReadings === undefined ? "-" : `${uolToInch.fromAtoB(robotSensorReadings[side].length).toFixed(2)} in`;
+  const robotCst: CoordinateSystemTransformation | undefined = (() => {
+    const referencedPath = app.interestedPath();
+    if (referencedPath === undefined) return undefined;
+
+    const cs = app.coordinateSystem;
+    if (cs === undefined) return undefined;
+
+    const firstControl = referencedPath.segments[0]?.controls[0];
+    if (firstControl === undefined) return undefined;
+
+    return new CoordinateSystemTransformation(cs, app.fieldDimension, firstControl);
+  })();
+  const robotOdom =
+    app.robot.position.visible && robotCst !== undefined ? robotCst.transform(app.robot.position) : undefined;
+  const getRobotOdomDisplay = (value: number | undefined) => (value === undefined ? "-" : value.toUser().toString());
+  const robotOdomHeadingDisplay =
+    robotOdom === undefined || !isCoordinateWithHeading(robotOdom) ? "-" : `${robotOdom.heading.toUser()}°`;
+
   return (
     <Box id="ControlConfigPanel">
       <PanelBox marginTop="0">
@@ -216,6 +240,24 @@ const ControlConfigPanelBody = observer((props: {}) => {
           }}
           numeric
         />
+      </PanelBox>
+      <PanelBox flexWrap="wrap">
+        <Typography variant="body2" sx={{ minWidth: "6.9rem" }}>
+          Odom X: {getRobotOdomDisplay(robotOdom?.x)}
+        </Typography>
+        <Typography variant="body2" sx={{ minWidth: "6.9rem" }}>
+          Odom Y: {getRobotOdomDisplay(robotOdom?.y)}
+        </Typography>
+        <Typography variant="body2" sx={{ minWidth: "8.4rem" }}>
+          Odom Heading: {robotOdomHeadingDisplay}
+        </Typography>
+      </PanelBox>
+      <PanelBox flexWrap="wrap">
+        {ROBOT_SENSOR_SIDES.map(side => (
+          <Typography key={side} variant="body2" sx={{ minWidth: "5.8rem" }}>
+            {ROBOT_SENSOR_LABELS[side]}: {getSensorLengthDisplay(side)}
+          </Typography>
+        ))}
       </PanelBox>
       <PanelBox>
         <Tooltip title="Rotate Right 90°">
