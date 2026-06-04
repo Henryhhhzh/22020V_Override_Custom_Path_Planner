@@ -1,7 +1,13 @@
 import { Box, ListSubheader, MenuItem, MenuItemProps, Select, SelectChangeEvent, Typography } from "@mui/material";
 import { action } from "mobx";
 import { observer } from "mobx-react-lite";
-import { Format, getAllDeprecatedFormats, getAllExperimentalFormats, getAllGeneralFormats } from "@format/Format";
+import {
+  Format,
+  getAllCustomFormats,
+  getAllDeprecatedFormats,
+  getAllExperimentalFormats,
+  getAllGeneralFormats
+} from "@format/Format";
 import { FormInputField, clampQuantity } from "@app/component.blocks/FormInputField";
 import { Quantity, UnitOfLength } from "@core/Unit";
 import { UpdateProperties } from "@core/Command";
@@ -43,9 +49,10 @@ const GeneralConfigPanelBody = observer((props: {}) => {
   const selectedSensorOffset = gc.sensorOffsets[selectedSensor];
 
   const allGeneralFormats = getAllGeneralFormats();
+  const allCustomFormats = getAllCustomFormats();
   const allDeprecatedFormats = getAllDeprecatedFormats();
   const allExperimentalFormats = getAllExperimentalFormats();
-  const allFormats = [...allGeneralFormats, ...allDeprecatedFormats, ...allExperimentalFormats];
+  const allFormats = [...allGeneralFormats, ...allCustomFormats, ...allDeprecatedFormats, ...allExperimentalFormats];
   const findIndex = (format: Format) => allFormats.findIndex(x => x.getName() === format.getName());
 
   const changeFormat = action((index: number) => {
@@ -95,6 +102,10 @@ const GeneralConfigPanelBody = observer((props: {}) => {
           onChange={onChangeFormat}>
           <ListSubheader>General</ListSubheader>
           {allGeneralFormats.map(x => (
+            <FormatMenuItem key={x.getName()} format={x} value={findIndex(x)} />
+          ))}
+          <ListSubheader>Custom</ListSubheader>
+          {allCustomFormats.map(x => (
             <FormatMenuItem key={x.getName()} format={x} value={findIndex(x)} />
           ))}
           <ListSubheader>Deprecated</ListSubheader>

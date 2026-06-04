@@ -43,6 +43,7 @@ async function saveConfirm(callback: () => void) {
 
 async function fileNameConfirm(description: string, callback: () => void): Promise<boolean> {
   const { app, confirmation } = getAppStores();
+  const suggestedName = getSuggestedFileName(app.mountingFile.name);
 
   return new Promise<boolean>((resolve, reject) => {
     confirmation.prompt({
@@ -53,7 +54,7 @@ async function fileNameConfirm(description: string, callback: () => void): Promi
           label: "Confirm",
           color: "success",
           onClick: async () => {
-            let candidate = confirmation.input ?? app.mountingFile.name;
+            let candidate = confirmation.input ?? suggestedName;
             if (candidate.indexOf(".") === -1) candidate += ".txt";
             app.mountingFile.name = candidate;
             app.mountingFile.isNameSet = true;
@@ -64,9 +65,14 @@ async function fileNameConfirm(description: string, callback: () => void): Promi
         { label: "Cancel", onClick: () => resolve(false) }
       ],
       inputLabel: "File Name",
-      inputDefaultValue: app.mountingFile.name
+      inputDefaultValue: suggestedName
     });
   });
+}
+
+function getSuggestedFileName(currentName: string) {
+  const { app } = getAppStores();
+  return app.format.getSuggestedFileName?.(currentName) ?? currentName;
 }
 
 function exportFile(): ArrayBufferView<ArrayBufferLike> | undefined {
@@ -181,7 +187,7 @@ async function choiceSave(): Promise<boolean> {
 
   const options = {
     types: [{ description: "Path File", accept: { "text/plain": [] } }],
-    suggestedName: app.mountingFile.name,
+    suggestedName: getSuggestedFileName(app.mountingFile.name),
     excludeAcceptAllOption: false,
     multiple: false
   };

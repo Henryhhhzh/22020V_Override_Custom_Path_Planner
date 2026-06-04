@@ -13,6 +13,7 @@ import { isExperimentalFeaturesEnabled } from "@core/Preferences";
 import { RigidCodeGenFormatV0_1 } from "./RigidCodeGenFormatV0_1";
 import { MoveToPointCodeGenFormatV0_1 } from "./MoveToPointCodeGenFormatV0_1";
 import { LemLibTarballFormatV0_5 } from "./LemLibTarballFormatV0_5";
+import { LemLibRamseteBeta } from "./LemLibRamseteBeta";
 
 export interface Format {
   isInit: boolean;
@@ -21,6 +22,8 @@ export interface Format {
   getName(): string;
 
   getDescription(): string;
+
+  getSuggestedFileName?(currentName: string): string;
 
   /**
    * Registers the format with the provided application and user interface.
@@ -116,6 +119,10 @@ export function getAllGeneralFormats(): Format[] {
   return [new LemLibFormatV0_4(), new LemLibTarballFormatV0_5(), new PathDotJerryioFormatV0_1()];
 }
 
+export function getAllCustomFormats(): Format[] {
+  return [new LemLibRamseteBeta()];
+}
+
 export function getAllDeprecatedFormats(): Format[] {
   return [new LemLibOdomGeneratorFormatV0_4()];
 }
@@ -126,7 +133,12 @@ export function getAllExperimentalFormats(): Format[] {
 }
 
 export function getAllFormats(): Format[] {
-  return [...getAllGeneralFormats(), ...getAllDeprecatedFormats(), ...getAllExperimentalFormats()];
+  return [
+    ...getAllGeneralFormats(),
+    ...getAllCustomFormats(),
+    ...getAllDeprecatedFormats(),
+    ...getAllExperimentalFormats()
+  ];
 }
 
 interface PathFileDataConverter {
