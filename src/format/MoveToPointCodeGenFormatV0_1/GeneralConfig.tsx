@@ -14,6 +14,7 @@ import { GeneralConfig, initGeneralConfig } from "../Config";
 import { Format } from "../Format";
 import { PanelBox } from "@src/app/component.blocks/PanelBox";
 import { getNamedCoordinateSystems } from "@src/core/CoordinateSystem";
+import { RobotSensorOffsets, createDefaultRobotSensorOffsets } from "@core/RobotSensors";
 
 interface FormatWithExportCode extends Format {
   exportCode(): string;
@@ -110,6 +111,11 @@ export class GeneralConfigImpl implements GeneralConfig {
   @IsBoolean()
   @Expose()
   showRobot: boolean = false;
+  @Type(() => RobotSensorOffsets)
+  @ValidateNested()
+  @IsObject()
+  @Expose()
+  sensorOffsets: RobotSensorOffsets = createDefaultRobotSensorOffsets();
   @ValidateNumber(num => num > 0 && num <= 1000) // Don't use IsEnum
   @Expose()
   uol: UnitOfLength = UnitOfLength.Centimeter;

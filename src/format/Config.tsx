@@ -5,6 +5,7 @@ import { BentRateApplicationDirection, Path } from "@core/Path";
 import { FieldImageOriginType, FieldImageSignatureAndOrigin, getDefaultBuiltInFieldImage } from "@core/Asset";
 import { EditableNumberRange, NumberRange } from "@core/Util";
 import { getAppStores } from "@core/MainApp";
+import { RobotSensorOffsets, cloneRobotSensorOffsets } from "@core/RobotSensors";
 
 export function convertGeneralConfigUOL(gc: GeneralConfig, fromUOL: UnitOfLength) {
   const toUOL = gc.uol;
@@ -27,6 +28,7 @@ export function convertFormat(newFormat: Format, oldFormat: Format, oldPaths: Pa
   convertGeneralConfigUOL(newGC, oldGC.uol);
   newGC.pointDensity = keepPointDensity; // UX: Use new format point density
   newGC.fieldImage = oldGC.fieldImage;
+  newGC.sensorOffsets = cloneRobotSensorOffsets(oldGC.sensorOffsets);
 
   const newPaths: Path[] = [];
   for (const oldPath of oldPaths) {
@@ -82,6 +84,7 @@ export interface ConfigSection {
  * Force Static - The robot's heading aligns with the first end control of the current segment where the robot is located
  * Holonomic robot - The robot that can move in any direction without turning
  * @param showRobot Whether to show the robot on the field
+ * @param sensorOffsets Robot sensor offsets, stored in inches and localized to each sensor side
  * @param uol Unit of length
  * @param pointDensity The spacing between two waypoints on the path
  * @param controlMagnetDistance The minimal distance for the dragging control to get magnetized to the Magnet Reference Line
@@ -93,6 +96,7 @@ export interface GeneralConfig extends ConfigSection {
   robotHeight: number;
   robotIsHolonomic: boolean | "force-static" | "force-holonomic";
   showRobot: boolean;
+  sensorOffsets: RobotSensorOffsets;
   uol: UnitOfLength;
   pointDensity: number;
   controlMagnetDistance: number;

@@ -9,7 +9,7 @@ import { getAppStores } from "@core/MainApp";
 import { FormEnumSelect } from "@app/component.blocks/FormEnumSelect";
 import { FormCheckbox } from "@app/component.blocks/FormCheckbox";
 import { NumberUOL } from "@token/Tokens";
-import { parseFormula } from "@core/Util";
+import { clamp, parseFormula } from "@core/Util";
 import { AssetManagerModalSymbol } from "../modal/AssetManagerModal";
 import { PanelBuilderProps, PanelInstanceProps } from "@core/Layout";
 import TuneIcon from "@mui/icons-material/Tune";
@@ -17,6 +17,8 @@ import { isExperimentalFeaturesEnabled } from "@src/core/Preferences";
 import { OpenModalButton } from "@src/app/component.blocks/OpenModalButton";
 import { PanelBox } from "@src/app/component.blocks/PanelBox";
 import { CoordinateSystemModalSymbol } from "../modal/CoordinateSystemModal";
+import React from "react";
+import { ROBOT_SENSOR_LABELS, ROBOT_SENSOR_SIDES, RobotSensorSide } from "@core/RobotSensors";
 
 const FormatMenuItem = (props: { format: Format } & MenuItemProps) => {
   const { format, ...rests } = props;
@@ -37,6 +39,8 @@ const GeneralConfigPanelBody = observer((props: {}) => {
   const { app, confirmation, ui, appPreferences } = getAppStores();
 
   const gc = app.gc;
+  const [selectedSensor, setSelectedSensor] = React.useState<RobotSensorSide>("front");
+  const selectedSensorOffset = gc.sensorOffsets[selectedSensor];
 
   const allGeneralFormats = getAllGeneralFormats();
   const allDeprecatedFormats = getAllDeprecatedFormats();
@@ -69,6 +73,15 @@ const GeneralConfigPanelBody = observer((props: {}) => {
       });
     }
   });
+
+  const updateSensorOffset = (axis: "x" | "y", value: string) => {
+    app.history.execute(
+      `Change ${ROBOT_SENSOR_LABELS[selectedSensor].toLowerCase()} sensor ${axis.toUpperCase()} offset`,
+      new UpdateProperties(selectedSensorOffset, {
+        [axis]: clamp(parseFormula(value, NumberUOL.parse)!.compute(UnitOfLength.Inch), -1000, 1000).toUser()
+      })
+    );
+  };
 
   return (
     <>
@@ -183,6 +196,41 @@ const GeneralConfigPanelBody = observer((props: {}) => {
             }}
           />
         )}
+      </PanelBox>
+      <Typography marginTop="16px" gutterBottom>
+        Sensors
+      </Typography>
+      <PanelBox>
+        <Select
+          size="small"
+          sx={{ minWidth: "7rem" }}
+          value={selectedSensor}
+          renderValue={value => ROBOT_SENSOR_LABELS[value as RobotSensorSide]}
+          onChange={(e: SelectChangeEvent<RobotSensorSide>) => setSelectedSensor(e.target.value as RobotSensorSide)}>
+          {ROBOT_SENSOR_SIDES.map(side => (
+            <MenuItem key={side} value={side}>
+              {ROBOT_SENSOR_LABELS[side]}
+            </MenuItem>
+          ))}
+        </Select>
+        <FormInputField
+          sx={{ width: "7rem" }}
+          label="Local X (in)"
+          getValue={() => selectedSensorOffset.x.toString()}
+          setValue={(value: string) => updateSensorOffset("x", value)}
+          isValidIntermediate={() => true}
+          isValidValue={(candidate: string) => parseFormula(candidate, NumberUOL.parse) !== null}
+          numeric
+        />
+        <FormInputField
+          sx={{ width: "7rem" }}
+          label="Local Y (in)"
+          getValue={() => selectedSensorOffset.y.toString()}
+          setValue={(value: string) => updateSensorOffset("y", value)}
+          isValidIntermediate={() => true}
+          isValidValue={(candidate: string) => parseFormula(candidate, NumberUOL.parse) !== null}
+          numeric
+        />
       </PanelBox>
       <Typography marginTop="16px" gutterBottom>
         Field & Coordinate

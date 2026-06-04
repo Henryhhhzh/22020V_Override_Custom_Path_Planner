@@ -7,6 +7,7 @@ import { IsPositive, IsBoolean, ValidateNested, IsObject, IsIn } from "class-val
 import { GeneralConfig, initGeneralConfig } from "../Config";
 import { Format } from "../Format";
 import { getNamedCoordinateSystems } from "@src/core/CoordinateSystem";
+import { RobotSensorOffsets, createDefaultRobotSensorOffsets } from "@core/RobotSensors";
 
 // observable class
 export class GeneralConfigImpl implements GeneralConfig {
@@ -22,6 +23,11 @@ export class GeneralConfigImpl implements GeneralConfig {
   @IsBoolean()
   @Expose()
   showRobot: boolean = false;
+  @Type(() => RobotSensorOffsets)
+  @ValidateNested()
+  @IsObject()
+  @Expose()
+  sensorOffsets: RobotSensorOffsets = createDefaultRobotSensorOffsets();
   @ValidateNumber(num => num > 0 && num <= 1000) // Don't use IsEnum
   @Expose()
   uol: UnitOfLength = UnitOfLength.Centimeter;

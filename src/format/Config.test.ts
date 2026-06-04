@@ -10,6 +10,7 @@ import { EditableNumberRange, ValidateEditableNumberRange, ValidateNumber } from
 import { CustomFormat } from "./Format.test";
 import { FieldImageOriginType, FieldImageSignatureAndOrigin, getDefaultBuiltInFieldImage } from "@core/Asset";
 import { getNamedCoordinateSystems } from "@src/core/CoordinateSystem";
+import { RobotSensorOffsets, createDefaultRobotSensorOffsets } from "@core/RobotSensors";
 
 export class CustomGeneralConfig implements GeneralConfig {
   public custom: string = "custom";
@@ -26,6 +27,11 @@ export class CustomGeneralConfig implements GeneralConfig {
   @IsBoolean()
   @Expose()
   showRobot: boolean = true;
+  @Type(() => RobotSensorOffsets)
+  @ValidateNested()
+  @IsObject()
+  @Expose()
+  sensorOffsets: RobotSensorOffsets = createDefaultRobotSensorOffsets();
   @ValidateNumber(num => num > 0 && num <= 1000) // Don't use IsEnum
   @Expose()
   uol: UnitOfLength = UnitOfLength.Inch;
