@@ -31,6 +31,56 @@ a {
   text-decoration: underline !important;
 }
 
+.AppBrand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--text-primary-color);
+  user-select: none;
+  cursor: default;
+}
+
+.AppBrand-Logo {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 1px 2px var(--panel-shadow-color));
+}
+
+.AppBrand-Text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700 !important;
+  font-size: 0.86rem !important;
+  line-height: 1 !important;
+}
+
+.AppBrand_dropdown {
+  width: 100%;
+}
+
+.AppBrand_mobile {
+  height: 42px;
+}
+
+.AppBrand_mobile .AppBrand-Logo {
+  width: 23px;
+  height: 23px;
+}
+
+.AppBrand_mobile .AppBrand-Text {
+  font-size: 0.78rem !important;
+}
+
+@media (max-width: 520px) {
+  .AppBrand_mobile .AppBrand-Text {
+    display: none;
+  }
+}
+
 code {
   display: inline-block;
   padding: 0px 6.4px;
@@ -93,6 +143,14 @@ th {
 // For accordion
 .MuiPaper-root {
   background-image: none !important; // remove tiny dot pattern in accordion
+}
+
+.MuiMenuItem-root.Mui-selected {
+  background-color: var(--selected-color) !important;
+}
+
+.MuiMenuItem-root.Mui-selected:hover {
+  background-color: var(--selected-hover-color) !important;
 }
 
 .notistack-SnackbarContainer {
