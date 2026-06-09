@@ -1,19 +1,18 @@
 import { FormCheckbox } from "@app/component.blocks/FormCheckbox";
+import { BrandMark } from "../BrandMark";
 
-<img src="static/logo464.svg" alt="app logo" className="WelcomeModal-Logo" />
+<div className="WelcomeModal-Brand">
+  <BrandMark variant="dropdown" />
+</div>
 
-<div align='center' style={{"marginBlockStart": "16px", "marginBlockEnd": "16px"}}>
-# Welcome to PATH.JERRYIO
-Before you start, please take a few minutes to read our [tutorial](https://docs.path.jerryio.com/docs/getting-started).
+<div align="center" style={{"marginBlockStart": "16px", "marginBlockEnd": "16px"}}>
+# Welcome to 22020V Path Planner
+Design VEX paths, visualize robot sensors, and export LemLib-compatible paths including Ramsete trajectories.
 </div>
 
 <br />
 
-PATH.JERRYIO is a multi-purpose path editor/planner which can be used to design routes for one-minute driver skill and generate path files. It is a Progressive Web App (PWA) that is installable and can be used on any device without an internet connection.
-
-![A banner showing PATH.JERRYIO running on the iMac, MacBook, iPad, and iPhone](static/readme-banner-0.5x.png)
-
-More information about this editor can be found on the [GitHub Page](https://github.com/Jerrylum/path.jerryio).
+22020V Path Planner is a browser-based path editor for VEX autonomous route planning. It can be installed as a Progressive Web App (PWA) and used offline after loading.
 
 ## We Respect Your Privacy
 
@@ -25,5 +24,12 @@ Please read our [Privacy Policy](https://github.com/Jerrylum/path.jerryio/blob/m
 
 ## Support
 
-If you have any questions or suggestions, please join our [Discord Server](https://discord.gg/4uVSVXXBBa).
-You can also report bugs or request features on the [GitHub Page](https://github.com/Jerrylum/path.jerryio) too.
+Report bugs or request features on the [GitHub repo](https://github.com/Henryhhhzh/22020V_Override_Custom_Path_Planner).
+
+<p className="WelcomeModal-ForkNotice">
+  22020V Path Planner is a modified GPL-3.0 fork of PATH.JERRYIO by Jerry Lum.{" "}
+  <a href="https://github.com/Henryhhhzh/22020V_Override_Custom_Path_Planner" target="_blank" rel="noreferrer">
+    Source code
+  </a>{" "}
+  is available on GitHub.
+</p>
