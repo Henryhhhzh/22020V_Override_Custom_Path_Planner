@@ -1,5 +1,7 @@
 #BottomNav {
   background-color: var(--bg-paper-color);
+  border-top: 1px solid var(--panel-border-color);
+  box-shadow: 0 -8px 24px var(--panel-shadow-color);
   position: fixed;
   bottom: 0;
   left: 0;
@@ -12,6 +14,8 @@
 #BottomPanel {
   background-color: var(--bg-paper-color);
   color: var(--text-primary-color);
+  border-top: 1px solid var(--panel-border-color);
+  box-shadow: 0 -8px 24px var(--panel-shadow-color);
   position: fixed;
   bottom: 0;
   left: 0;
@@ -28,6 +32,7 @@
     .FloatingPanel-Header {
       font-size: 18px;
       margin-bottom: 16px;
+      color: var(--primary-light-color);
     }
   }
 
@@ -38,6 +43,8 @@
 
 #TopNav {
   background-color: var(--bg-paper-color);
+  border-bottom: 1px solid var(--panel-border-color);
+  box-shadow: 0 8px 24px var(--panel-shadow-color);
   position: fixed;
   top: 0;
   left: 0;
@@ -53,7 +60,17 @@
   #TopNav-UndoRedoSection {
     display: flex;
     flex-grow: 1;
-    padding: 0 16px;
+    min-width: 84px;
+    padding: 0 8px;
+  }
+
+  #TopNav-Brand {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    max-width: 48vw;
+    overflow: hidden;
+    padding: 0 8px;
   }
 
   #TopNav-RightSection {
@@ -85,6 +102,10 @@
   &.disabled {
     cursor: auto;
     color: var(--text-disabled-color);
+  }
+
+  @include on-hover {
+    background-color: var(--selected-color);
   }
 
   > svg {

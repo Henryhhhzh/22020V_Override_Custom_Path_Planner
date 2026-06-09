@@ -29,6 +29,7 @@ import { useWindowSize } from "@core/Hook";
 import { AboutModalSymbol } from "../modal/AboutModal";
 import { WelcomeModalSymbol } from "../modal/WelcomeModal";
 import { PreferencesModalSymbol } from "../modal/PreferencesModal";
+import { BrandMark } from "../BrandMark";
 
 import "./MenuPanel.scss";
 
@@ -322,6 +323,7 @@ const MenuPanel = observer((props: {}) => {
 
   return (
     <Card id="MenuPanel">
+      <BrandMark variant="menu" />
       <Button
         size="small"
         color="inherit"
@@ -394,6 +396,10 @@ const MenuMainDropdown = observer((props: { anchor: PopoverPosition; isOpen: boo
         anchorPosition={props.anchor}
         open={props.isOpen}
         onClose={props.onClose}>
+        <MenuItem className="Menu-BrandItem" disabled>
+          <BrandMark variant="dropdown" />
+        </MenuItem>
+        <Divider />
         <CustomMenuItem showLeftIcon={false} label="File">
           {FileMenuItems()}
         </CustomMenuItem>

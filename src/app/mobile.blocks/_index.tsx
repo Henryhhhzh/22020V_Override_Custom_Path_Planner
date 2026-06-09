@@ -14,6 +14,7 @@ import { MenuMainDropdown } from "../common.blocks/panel/MenuPanel";
 import { PanelFloatingInstance, PanelStaticInstance } from "../common.blocks/panel/Panel";
 import { PathTreePanel } from "../common.blocks/panel/PathTreePanel";
 import { SpeedCanvasElement } from "../common.blocks/speed-canvas/SpeedCanvasElement";
+import { BrandMark } from "../common.blocks/BrandMark";
 
 class MobileLayoutVariables {
   public currentPanel: string | null = null;
@@ -51,6 +52,9 @@ export const MobileLayout = observer(() => {
           <Box className="PanelIcon" onClick={action(() => (variables.isMenuOpen = true))}>
             <MenuIcon fontSize="large" />
           </Box>
+        </Box>
+        <Box id="TopNav-Brand">
+          <BrandMark variant="mobile" />
         </Box>
         <Box id="TopNav-UndoRedoSection">
           <Box

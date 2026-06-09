@@ -43,11 +43,13 @@
   border-radius: 4px;
   color: var(--text-primary-color);
   box-sizing: border-box;
-  border: 0.5px solid var(--bg-default-color);
+  border: 0.5px solid var(--panel-border-color);
+  box-shadow: 0 8px 24px var(--panel-shadow-color);
 
   .FloatingPanel-Header {
     font-size: 18px;
     margin-bottom: 16px;
+    color: var(--primary-light-color);
   }
 }
 
@@ -65,6 +67,7 @@
   margin: 0;
   cursor: pointer;
   border-radius: 4px;
+  border: 1px solid transparent;
   margin-bottom: 8px;
   position: relative;
 
@@ -87,7 +90,8 @@
   }
 
   @include on-hover {
-    background-color: var(--bg-default-color);
+    background-color: var(--selected-color);
+    border-color: var(--panel-border-color);
   }
 }
 

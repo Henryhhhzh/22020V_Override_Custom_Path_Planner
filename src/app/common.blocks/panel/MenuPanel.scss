@@ -1,6 +1,11 @@
 .Menu-Item.MuiMenuItem-root {
   padding-left: 4px !important;
 
+  &:focus,
+  &:hover {
+    background-color: var(--selected-color) !important;
+  }
+
   &.Mui-disabled {
     pointer-events: auto !important;
 
@@ -27,5 +32,17 @@
     position: relative;
     top: -1px;
     right: -8px;
+  }
+}
+
+.Menu-BrandItem.MuiMenuItem-root {
+  min-width: 220px;
+  padding: 8px 12px 10px !important;
+  border-bottom: 1px solid var(--panel-border-color);
+  opacity: 1 !important;
+  cursor: default;
+
+  &:hover {
+    background-color: transparent !important;
   }
 }
