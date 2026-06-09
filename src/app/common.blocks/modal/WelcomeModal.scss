@@ -1,5 +1,5 @@
 #WelcomeModal {
-  padding: 16px;
+  padding: 0 16px 16px;
   width: 768px;
   max-width: 80%;
   min-height: 96px;
@@ -8,33 +8,190 @@
   overflow-y: auto;
 }
 
-.WelcomeModal-Brand {
-  display: flex;
-  justify-content: center;
-  margin: 4px auto 16px;
+.WelcomeModal-Hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 0.72fr);
+  gap: 24px;
+  align-items: center;
+  margin: 0 -16px 24px;
+  padding: 28px 32px;
+  border-bottom: 1px solid var(--panel-border-color);
+  background: linear-gradient(135deg, rgba(159, 29, 46, 0.28), rgba(111, 16, 29, 0.08) 46%, rgba(0, 0, 0, 0)),
+    var(--bg-paper-color);
+  overflow: hidden;
+}
+
+.WelcomeModal-HeroCopy {
+  min-width: 0;
 
   .AppBrand {
-    justify-content: center;
     gap: 12px;
   }
 
   .AppBrand-Logo {
-    width: 56px;
-    height: 56px;
+    width: 44px;
+    height: 44px;
   }
 
   .AppBrand-Text {
-    font-size: 1.1rem !important;
+    font-size: 1rem !important;
   }
 }
 
+.WelcomeModal-HeroTitle {
+  margin: 22px 0 8px !important;
+  color: var(--text-primary-color);
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  line-height: 1.12 !important;
+}
+
+.WelcomeModal-HeroSubtitle {
+  max-width: 520px;
+  color: var(--text-secondary-color);
+  font-size: 1rem !important;
+  line-height: 1.55 !important;
+}
+
+.WelcomeModal-HeroPills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+
+  span {
+    border: 1px solid var(--panel-border-color);
+    border-radius: 4px;
+    background-color: var(--selected-color);
+    color: var(--text-primary-color);
+    font-size: 0.78rem;
+    line-height: 1;
+    padding: 7px 9px;
+  }
+}
+
+.WelcomeModal-HeroPreview {
+  position: relative;
+  min-height: 190px;
+  border: 1px solid var(--panel-border-color);
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px), rgba(20, 20, 20, 0.38);
+  background-size: 46px 46px, 46px 46px, auto;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.16);
+  overflow: hidden;
+}
+
+.WelcomeModal-PreviewField {
+  position: absolute;
+  inset: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.72);
+}
+
+.WelcomeModal-PreviewPath,
+.WelcomeModal-PreviewRay,
+.WelcomeModal-PreviewBot,
+.WelcomeModal-PreviewPoint {
+  position: absolute;
+  display: block;
+}
+
+.WelcomeModal-PreviewPath {
+  width: 152px;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7ac943, #d8c93a, #d83a4e);
+  opacity: 0.9;
+  transform-origin: left center;
+}
+
+.WelcomeModal-PreviewPath_a {
+  left: 36px;
+  top: 118px;
+  transform: rotate(-28deg);
+}
+
+.WelcomeModal-PreviewPath_b {
+  left: 88px;
+  top: 62px;
+  transform: rotate(30deg);
+}
+
+.WelcomeModal-PreviewRay {
+  width: 132px;
+  height: 2px;
+  background-color: rgba(216, 58, 78, 0.78);
+  transform-origin: left center;
+}
+
+.WelcomeModal-PreviewRay_front {
+  left: 116px;
+  top: 100px;
+  transform: rotate(-8deg);
+}
+
+.WelcomeModal-PreviewRay_side {
+  left: 118px;
+  top: 100px;
+  transform: rotate(82deg);
+}
+
+.WelcomeModal-PreviewBot {
+  left: calc(50% - 24px);
+  top: calc(50% - 24px);
+  width: 48px;
+  height: 48px;
+  border: 2px solid rgba(255, 255, 255, 0.74);
+  background-color: rgba(159, 29, 46, 0.36);
+  transform: rotate(-14deg);
+}
+
+.WelcomeModal-PreviewPoint {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--primary-light-color);
+  box-shadow: 0 0 0 4px rgba(216, 58, 78, 0.18);
+}
+
+.WelcomeModal-PreviewPoint_1 {
+  left: 34px;
+  top: 44px;
+}
+
+.WelcomeModal-PreviewPoint_2 {
+  right: 42px;
+  top: 64px;
+}
+
+.WelcomeModal-PreviewPoint_3 {
+  left: 78px;
+  bottom: 34px;
+}
+
 .WelcomeModal-ForkNotice {
+  display: block;
   margin: 24px auto 0;
   max-width: 560px;
   text-align: center;
   color: var(--text-secondary-color);
   font-size: 0.72rem;
   line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  .WelcomeModal-Hero {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 24px;
+  }
+
+  .WelcomeModal-HeroPreview {
+    min-height: 150px;
+  }
+
+  .WelcomeModal-HeroTitle {
+    font-size: 1.6rem !important;
+  }
 }
 
 @supports not (-moz-appearance: none) {
