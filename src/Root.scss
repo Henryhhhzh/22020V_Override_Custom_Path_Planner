@@ -32,7 +32,14 @@
       --link-color: rgba(0, 0, 0, 0.87);
       --hover-color: rgba(0, 0, 0, 0.08);
       --focused-color: rgba(0, 0, 0, 0.12);
-      --primary-main-color: #5c469c;
+      --primary-main-color: #9f1d2e;
+      --primary-dark-color: #6f101d;
+      --primary-light-color: #d83a4e;
+      --selected-color: rgba(159, 29, 46, 0.18);
+      --selected-hover-color: rgba(159, 29, 46, 0.28);
+      --selected-focused-color: rgba(159, 29, 46, 0.34);
+      --panel-border-color: rgba(159, 29, 46, 0.28);
+      --panel-shadow-color: rgba(40, 0, 8, 0.2);
       background-color: var(--bg-body-color);
 
       code {
@@ -58,7 +65,14 @@
       --link-color: rgba(255, 255, 255, 0.87);
       --hover-color: rgba(255, 255, 255, 0.04);
       --focused-color: rgba(255, 255, 255, 0.12);
-      --primary-main-color: #7f47b3;
+      --primary-main-color: #9f1d2e;
+      --primary-dark-color: #6f101d;
+      --primary-light-color: #d83a4e;
+      --selected-color: rgba(159, 29, 46, 0.18);
+      --selected-hover-color: rgba(159, 29, 46, 0.28);
+      --selected-focused-color: rgba(159, 29, 46, 0.34);
+      --panel-border-color: rgba(159, 29, 46, 0.32);
+      --panel-shadow-color: rgba(0, 0, 0, 0.36);
       background-color: var(--bg-body-color);
 
       code {

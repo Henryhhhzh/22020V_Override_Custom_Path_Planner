@@ -49,7 +49,10 @@ export const themes = {
       palette: {
         mode: "light",
         primary: {
-          main: "#5C469C"
+          light: "#D83A4E",
+          main: "#9F1D2E",
+          dark: "#6F101D",
+          contrastText: "#FFF"
         }
       },
       components: componentsStyleOverrides
@@ -64,9 +67,9 @@ export const themes = {
       palette: {
         mode: "dark",
         primary: {
-          light: "#5C469C",
-          main: "#7F47B3",
-          dark: "#474AB3",
+          light: "#D83A4E",
+          main: "#9F1D2E",
+          dark: "#6F101D",
           contrastText: "#FFF"
         },
         background: {

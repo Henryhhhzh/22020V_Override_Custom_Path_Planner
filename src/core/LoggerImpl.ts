@@ -56,10 +56,10 @@ export default class LoggerImpl {
       `background: ${
         {
           debug: `#a4a4a4`,
-          log: `#7F47B3`,
+          log: `#9F1D2E`,
           warn: `#ED6C02`,
           error: `#D32F2F`,
-          groupCollapsed: `#5C469C`,
+          groupCollapsed: `#6F101D`,
           groupEnd: null // No colored prefix on groupEnd
         }[method]
       }`,
