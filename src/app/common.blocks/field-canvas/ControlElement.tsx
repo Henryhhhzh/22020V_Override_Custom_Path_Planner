@@ -378,7 +378,7 @@ const ControlElement = observer((props: ControlElementProps) => {
   const lineWidth = props.fcc.heightInPx / 600;
   const cpRadius = (props.fcc.heightInPx / 40) * (app.hoverItem === props.cp.uid ? 1.5 : 1);
   const cpInPx = props.fcc.toPx(props.cp.toVector()); // ALGO: Use toVector() for better performance
-  const fillColor = app.isSelected(props.cp) ? "#5C469Cdf" : "#5C469C6f";
+  const fillColor = app.isSelected(props.cp) ? "#9F1D2Edf" : "#9F1D2E6f";
 
   function onClickFirstOrLastControlPoint(event: Konva.KonvaEventObject<MouseEvent>) {
     const evt = event.evt;

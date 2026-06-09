@@ -62,7 +62,7 @@
         }
 
         .PathTreePanel-TreeItemName_edit {
-          outline: 1px #7f47b3 solid;
+          outline: 1px var(--primary-main-color) solid;
         }
 
         .PathTreePanel-TreeItemName_preview {
@@ -95,15 +95,15 @@
     }
 
     .PathTreePanel-TreeItemContent.selected {
-      background-color: rgba(127, 71, 179, 0.16);
+      background-color: var(--selected-color);
     }
 
     .PathTreePanel-TreeItemContent.selected:hover {
-      background-color: rgba(127, 71, 179, 0.24);
+      background-color: var(--selected-hover-color);
     }
 
     .PathTreePanel-TreeItemContent.selected.focused {
-      background-color: rgba(127, 71, 179, 0.28);
+      background-color: var(--selected-focused-color);
     }
 
     .PathTreePanel-TreeItemContent.deny-drop {
@@ -124,7 +124,7 @@
 
   .PathTreePanel-DraggingDividerTop::after {
     content: "";
-    border-top: 1px solid #7f47b3;
+    border-top: 1px solid var(--primary-main-color);
     width: 100%;
     display: block;
     position: absolute;
@@ -134,7 +134,7 @@
 
   .PathTreePanel-DraggingDividerBottom::after {
     content: "";
-    border-top: 1px solid #7f47b3;
+    border-top: 1px solid var(--primary-main-color);
     width: 100%;
     display: block;
     position: absolute;
