@@ -8,10 +8,33 @@
   overflow-y: auto;
 }
 
-.WelcomeModal-Logo {
-  margin: auto;
-  width: 128px;
-  display: block;
+.WelcomeModal-Brand {
+  display: flex;
+  justify-content: center;
+  margin: 4px auto 16px;
+
+  .AppBrand {
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .AppBrand-Logo {
+    width: 56px;
+    height: 56px;
+  }
+
+  .AppBrand-Text {
+    font-size: 1.1rem !important;
+  }
+}
+
+.WelcomeModal-ForkNotice {
+  margin: 24px auto 0;
+  max-width: 560px;
+  text-align: center;
+  color: var(--text-secondary-color);
+  font-size: 0.72rem;
+  line-height: 1.45;
 }
 
 @supports not (-moz-appearance: none) {
