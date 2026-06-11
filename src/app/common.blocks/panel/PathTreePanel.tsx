@@ -371,6 +371,7 @@ const TreeItem = observer((props: TreeItemProps) => {
         className={classNames("PathTreePanel-TreeItemContent", {
           focused: isFocused,
           selected: app.isSelected(entity),
+          "interested-path": entity instanceof Path && app.interestedPath()?.uid === entity.uid,
           "deny-drop": !allowDrop,
           "PathTreePanel-DraggingDividerTop": showDraggingDivider && entityIdx <= variables.dragging!.idx,
           "PathTreePanel-DraggingDividerBottom":

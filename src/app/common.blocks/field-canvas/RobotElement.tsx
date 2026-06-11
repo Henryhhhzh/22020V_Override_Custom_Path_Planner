@@ -6,7 +6,17 @@ import { getAppStores } from "@core/MainApp";
 import { ROBOT_SENSOR_SIDES, getRobotSensorReadings } from "@core/RobotSensors";
 
 const RobotElement = observer(
-  (props: { fcc: FieldCanvasConverter; pos: EndControl; width: number; height: number }) => {
+  (props: {
+    fcc: FieldCanvasConverter;
+    pos: EndControl;
+    width: number;
+    height: number;
+    showSensors?: boolean;
+    fill?: string;
+    stroke?: string;
+    frontStroke?: string;
+    opacity?: number;
+  }) => {
     const { app } = getAppStores();
     const widthInPx = props.width * props.fcc.uol2pixel;
     const heightInPx = props.height * props.fcc.uol2pixel;
@@ -20,41 +30,43 @@ const RobotElement = observer(
 
     return (
       <>
-        {ROBOT_SENSOR_SIDES.map(side => {
-          const reading = sensorReadings[side];
-          const start = props.fcc.toPx(reading.start);
-          const end = props.fcc.toPx(reading.end);
+        {(props.showSensors ?? true) &&
+          ROBOT_SENSOR_SIDES.map(side => {
+            const reading = sensorReadings[side];
+            const start = props.fcc.toPx(reading.start);
+            const end = props.fcc.toPx(reading.end);
 
-          return (
-            <Line
-              key={side}
-              points={[start.x, start.y, end.x, end.y]}
-              stroke="#ff2222"
-              strokeWidth={Math.max(lineWidth, 1)}
-              opacity={0.9}
-              listening={false}
-            />
-          );
-        })}
+            return (
+              <Line
+                key={side}
+                points={[start.x, start.y, end.x, end.y]}
+                stroke="#ff2222"
+                strokeWidth={Math.max(lineWidth, 1)}
+                opacity={0.9}
+                listening={false}
+              />
+            );
+          })}
         <Group
           rotation={props.pos.heading}
           x={startInPx.x}
           y={startInPx.y}
           offsetX={widthInPx / 2}
           offsetY={heightInPx / 2}
+          opacity={props.opacity ?? 1}
           listening={false}>
           <Rect
             x={0}
             y={0}
             width={widthInPx}
             height={heightInPx}
-            stroke="#000"
+            stroke={props.stroke ?? "#000"}
             strokeWidth={lineWidth}
-            fill="#ffffff3f"
+            fill={props.fill ?? "#ffffff3f"}
           />
           <Line
             points={[centerInPx.x, centerInPx.y, frontInPx.x, frontInPx.y]}
-            stroke="#ffffff"
+            stroke={props.frontStroke ?? "#ffffff"}
             strokeWidth={lineWidth}
           />
         </Group>

@@ -1,5 +1,6 @@
 import type { MainApp } from "./MainApp";
 import { makeAutoObservable, observable } from "mobx";
+import { fromAngleInRadianToHeadingInDegree } from "./Calculation";
 import { Path, Point } from "./Path";
 import { generateRamseteTrajectory, unwrapAngle } from "./RamseteTrajectory";
 import { UnitConverter, UnitOfLength } from "./Unit";
@@ -243,7 +244,7 @@ export function sampleSimulationRoute(route: SimulationRoute, time: number): Sim
         path: current.path,
         x: previous.x + (current.x - previous.x) * ratio,
         y: previous.y + (current.y - previous.y) * ratio,
-        headingDeg: (thetaRad * 180) / Math.PI,
+        headingDeg: fromAngleInRadianToHeadingInDegree(thetaRad),
         xIn: previous.xIn + (current.xIn - previous.xIn) * ratio,
         yIn: previous.yIn + (current.yIn - previous.yIn) * ratio,
         thetaRad,
@@ -279,7 +280,7 @@ function createRamseteSamples(app: MainApp, path: Path): SimulationSample[] {
     path,
     x: inToUol.fromAtoB(row.x_in),
     y: inToUol.fromAtoB(row.y_in),
-    headingDeg: (row.theta_rad * 180) / Math.PI,
+    headingDeg: fromAngleInRadianToHeadingInDegree(row.theta_rad),
     xIn: row.x_in,
     yIn: row.y_in,
     thetaRad: row.theta_rad,
@@ -311,7 +312,7 @@ function createVisualSamples(app: MainApp, path: Path): SimulationSample[] {
       path,
       x: point.x,
       y: point.y,
-      headingDeg: (thetaRad * 180) / Math.PI,
+      headingDeg: fromAngleInRadianToHeadingInDegree(thetaRad),
       xIn: uolToIn.fromAtoB(point.x),
       yIn: uolToIn.fromAtoB(point.y),
       thetaRad,

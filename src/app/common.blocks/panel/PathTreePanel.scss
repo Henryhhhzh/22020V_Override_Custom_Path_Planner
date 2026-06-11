@@ -94,6 +94,10 @@
       background-color: var(--focused-color);
     }
 
+    .PathTreePanel-TreeItemContent.interested-path {
+      box-shadow: inset 3px 0 0 var(--primary-main-color);
+    }
+
     .PathTreePanel-TreeItemContent.selected {
       background-color: var(--selected-color);
     }

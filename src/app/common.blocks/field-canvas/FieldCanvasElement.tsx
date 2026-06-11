@@ -229,6 +229,43 @@ const PathPoints = observer((props: { path: Path; fcc: FieldCanvasConverter }) =
   );
 });
 
+const PathHighlight = observer((props: { path: Path; fcc: FieldCanvasConverter; active?: boolean }) => {
+  const { path, fcc } = props;
+  const points = path.cachedResult.points.flatMap(point => {
+    const pointInPx = fcc.toPx(point);
+    return [pointInPx.x, pointInPx.y];
+  });
+
+  if (points.length < 4) return null;
+
+  const baseWidth = Math.max(fcc.heightInPx / 110, 5);
+
+  return (
+    <>
+      <Line
+        points={points}
+        stroke="#9f1d2e"
+        strokeWidth={props.active ? baseWidth * 1.45 : baseWidth}
+        opacity={props.active ? 0.32 : 0.2}
+        lineCap="round"
+        lineJoin="round"
+        shadowColor="#9f1d2e"
+        shadowBlur={props.active ? 14 : 9}
+        listening={false}
+      />
+      <Line
+        points={points}
+        stroke={props.active ? "#d83a4e" : "#9f1d2e"}
+        strokeWidth={props.active ? Math.max(baseWidth / 3, 2) : Math.max(baseWidth / 4, 1)}
+        opacity={props.active ? 0.78 : 0.5}
+        lineCap="round"
+        lineJoin="round"
+        listening={false}
+      />
+    </>
+  );
+});
+
 const PathSegments = observer((props: { path: Path; fcc: FieldCanvasConverter }) => {
   const { path, fcc } = props;
 
@@ -252,6 +289,28 @@ const PathControls = observer((props: { path: Path; fcc: FieldCanvasConverter })
         return <ControlElement key={cp.uid} {...{ lastControl: controls.length === cpIdx + 1, path, fcc, cp }} />;
       })}
     </>
+  );
+});
+
+const SimulationGhostRobot = observer((props: { fcc: FieldCanvasConverter }) => {
+  const { app } = getAppStores();
+  const current = app.simulation.current;
+  if (current === undefined) return null;
+
+  const pos = new EndControl(current.x, current.y, current.headingDeg);
+
+  return (
+    <RobotElement
+      fcc={props.fcc}
+      pos={pos}
+      width={app.gc.robotWidth}
+      height={app.gc.robotHeight}
+      showSensors={false}
+      fill="#9f1d2e3f"
+      stroke="#d83a4e"
+      frontStroke="#ffffff"
+      opacity={0.82}
+    />
   );
 });
 
@@ -754,6 +813,9 @@ const FieldCanvasElement = observer((props: {}) => {
   }
 
   const visiblePaths = app.paths.filter(path => path.visible);
+  const interestedPath = app.interestedPath();
+  const activeSimulationPath = app.simulation.currentPath;
+  const isVisiblePath = (path: Path | undefined) => path !== undefined && visiblePaths.includes(path);
 
   return (
     <Padding0Tooltip
@@ -812,6 +874,10 @@ const FieldCanvasElement = observer((props: {}) => {
             {fieldEditor.magnet.map((magnetRef, idx) => (
               <MagnetReferenceLine key={idx} magnetRef={magnetRef} fcc={fcc} />
             ))}
+            {isVisiblePath(interestedPath) && interestedPath !== activeSimulationPath && (
+              <PathHighlight path={interestedPath!} fcc={fcc} />
+            )}
+            {isVisiblePath(activeSimulationPath) && <PathHighlight path={activeSimulationPath!} fcc={fcc} active />}
             {visiblePaths.map(path => (
               <PathPoints key={path.uid} path={path} fcc={fcc} />
             ))}
@@ -824,6 +890,7 @@ const FieldCanvasElement = observer((props: {}) => {
             {app.gc.showRobot && app.robot.position.visible && (
               <RobotElement fcc={fcc} pos={app.robot.position} width={app.gc.robotWidth} height={app.gc.robotHeight} />
             )}
+            <SimulationGhostRobot fcc={fcc} />
             <Group name="selected-controls" />
             <AreaSelectionElement
               from={fieldEditor.areaSelection?.from}
