@@ -6,6 +6,7 @@ import { UnitConverter, UnitOfLength } from "./Unit";
 
 export type SimulationMode = "ramsete" | "visual";
 export type SimulationStatus = "idle" | "running" | "finished";
+export type SimulationScope = "selected" | "entire";
 
 export interface SimulationSample {
   time: number;
@@ -48,6 +49,7 @@ const STRAIGHT_OMEGA_EPSILON = 1e-6;
 export class SimulationController {
   mode: SimulationMode = "ramsete";
   status: SimulationStatus = "idle";
+  activeScope: SimulationScope | undefined = undefined;
   route: SimulationRoute | undefined = undefined;
   current: SimulationSample | undefined = undefined;
 
@@ -81,17 +83,18 @@ export class SimulationController {
 
   runSelectedPath() {
     const route = createSelectedSimulationRoute(this.app, this.mode);
-    this.start(route);
+    this.start(route, "selected");
   }
 
   runEntireRoute() {
     const route = createEntireSimulationRoute(this.app, this.mode);
-    this.start(route);
+    this.start(route, "entire");
   }
 
   stop() {
     this.cancelAnimationFrame();
     this.status = "idle";
+    this.activeScope = undefined;
     this.route = undefined;
     this.current = undefined;
     this.startTimeMs = 0;
@@ -113,11 +116,12 @@ export class SimulationController {
     this.requestAnimationFrame();
   }
 
-  private start(route: SimulationRoute | undefined) {
+  private start(route: SimulationRoute | undefined, scope: SimulationScope) {
     if (route === undefined) return;
 
     this.cancelAnimationFrame();
     this.route = route;
+    this.activeScope = scope;
     this.status = "running";
     this.current = route.samples[0];
     this.startTimeMs = getNowMs();

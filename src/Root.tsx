@@ -32,6 +32,7 @@ import { AssetManagerModal } from "./app/common.blocks/modal/AssetManagerModal";
 import { RequireLocalFieldImageModal } from "./app/common.blocks/modal/RequireLocalFieldImageModal";
 import { GeneralConfigPanel } from "./app/common.blocks/panel/GeneralConfigPanel";
 import { ControlConfigPanel } from "./app/common.blocks/panel/ControlConfigPanel";
+import { SimulationPanel } from "./app/common.blocks/panel/SimulationPanel";
 import { CoordinateSystemModal } from "./app/common.blocks/modal/CoordinateSystemModal";
 
 const Root = observer(() => {
@@ -122,6 +123,7 @@ const Root = observer(() => {
     ui.registerOverlay(() => <RequireLocalFieldImageModal />);
     ui.registerPanel(GeneralConfigPanel, 0);
     ui.registerPanel(ControlConfigPanel, 1);
+    ui.registerPanel(SimulationPanel, 2);
   }, [ui]);
 
   // XXX: set key so that the component will be reset when format is changed or app.gc.uol is changed
