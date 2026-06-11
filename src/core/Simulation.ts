@@ -57,14 +57,17 @@ export class SimulationController {
   private startTimeMs: number = 0;
   private animationFrameId: number | undefined = undefined;
 
-  constructor(private readonly app: MainApp) {
+  readonly app: MainApp;
+
+  constructor(app: MainApp) {
+    this.app = app;
+
     makeAutoObservable(
       this,
       {
         app: false,
         route: observable.ref,
-        current: observable.ref,
-        animationFrameId: false
+        current: observable.ref
       },
       { autoBind: true }
     );
@@ -201,10 +204,11 @@ export function createSimulationRoute(
     const localSamples = mode === "ramsete" ? createRamseteSamples(app, path) : createVisualSamples(app, path);
     if (localSamples.length === 0) continue;
 
-    const samples = localSamples.map(sample => ({ ...sample, time: sample.time + startTime }));
-    const duration = samples[samples.length - 1].time - startTime;
+    const pathStartTime = startTime;
+    const samples = localSamples.map(sample => ({ ...sample, time: sample.time + pathStartTime }));
+    const duration = samples[samples.length - 1].time - pathStartTime;
 
-    runs.push({ path, startTime, duration, samples });
+    runs.push({ path, startTime: pathStartTime, duration, samples });
     startTime += duration;
   }
 
@@ -303,7 +307,7 @@ function createVisualSamples(app: MainApp, path: Path): SimulationSample[] {
   const totalDistance = distances[distances.length - 1];
   if (totalDistance <= 0) return [];
 
-  const samples = points.map((point, index) => {
+  const samples: SimulationSample[] = points.map((point, index) => {
     const thetaRad = getPointHeading(points, index);
     const time = (distances[index] / totalDistance) * VISUAL_PATH_DURATION_SECONDS;
 
