@@ -3,6 +3,7 @@ import { Control, EndControl, Segment } from "@core/Path";
 import { LemLibFormatV0_4 } from "../LemLibFormatV0_4";
 import { getAllCustomFormats } from "../Format";
 import { LemLibRamseteBeta } from ".";
+import { calculateRamseteMaxVelocity } from "./GeneralConfig";
 import { PathConfigImpl } from "../LemLibFormatV0_4/PathConfig";
 import { action } from "mobx";
 import { TextEncoder as NodeTextEncoder } from "util";
@@ -44,12 +45,24 @@ test("custom format registry includes LemLib Ramsete Beta", () => {
   expect(getAllCustomFormats().map(format => format.getName())).toContain("LemLib Ramsete Beta");
 });
 
+test("Ramsete max velocity is derived from wheel RPM and wheel diameter", () => {
+  expect(calculateRamseteMaxVelocity(360, 3.25)).toBeCloseTo((360 * Math.PI * 3.25) / 60);
+
+  const format = new LemLibRamseteBeta();
+  const gc = format.getGeneralConfig() as any;
+  gc.ramseteWheelRpm = 360;
+  gc.ramseteWheelDiameterIn = 3.25;
+
+  expect(gc.ramseteMaxVelocity).toBeCloseTo(61.261);
+});
+
 test("straight Ramsete export uses fixed time steps and stops", () => {
   const format = new LemLibRamseteBeta();
   const gc = format.getGeneralConfig() as any;
   gc.pointDensity = 1;
   gc.ramseteDt = 0.02;
-  gc.ramseteMaxVelocity = 60;
+  gc.ramseteWheelRpm = 360;
+  gc.ramseteWheelDiameterIn = 3.25;
   gc.ramseteMaxAcceleration = 120;
   setAppPath(format, new Segment(new EndControl(0, 0, 0), new EndControl(24, 0, 0)));
 
@@ -75,7 +88,8 @@ test("curved Ramsete export has finite changing heading and omega", () => {
   const gc = format.getGeneralConfig() as any;
   gc.pointDensity = 1;
   gc.ramseteDt = 0.02;
-  gc.ramseteMaxVelocity = 60;
+  gc.ramseteWheelRpm = 360;
+  gc.ramseteWheelDiameterIn = 3.25;
   gc.ramseteMaxAcceleration = 120;
   setAppPath(
     format,
@@ -91,6 +105,24 @@ test("curved Ramsete export has finite changing heading and omega", () => {
     expect(Number.isFinite(row.theta_rad)).toBe(true);
     expect(Number.isFinite(row.omega_radps)).toBe(true);
   });
+});
+
+test("wheel speed changes the exported Ramsete peak velocity", () => {
+  const format = new LemLibRamseteBeta();
+  const gc = format.getGeneralConfig() as any;
+  gc.pointDensity = 1;
+  gc.ramseteDt = 0.02;
+  gc.ramseteMaxAcceleration = 10000;
+  gc.ramseteWheelDiameterIn = 3.25;
+  setAppPath(format, new Segment(new EndControl(0, 0, 0), new EndControl(120, 0, 0)));
+
+  gc.ramseteWheelRpm = 200;
+  const slowPeak = Math.max(...parseRamseteRows(decodeExport(format)).map(row => row.v_ips));
+
+  gc.ramseteWheelRpm = 400;
+  const fastPeak = Math.max(...parseRamseteRows(decodeExport(format)).map(row => row.v_ips));
+
+  expect(fastPeak).toBeGreaterThan(slowPeak * 1.5);
 });
 
 test("LemLib v0.5 Pure Pursuit export remains a three-column path file", () => {

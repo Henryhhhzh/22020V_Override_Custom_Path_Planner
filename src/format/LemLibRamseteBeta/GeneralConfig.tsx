@@ -15,6 +15,10 @@ import { UpdateProperties } from "@core/Command";
 import { FormInputField } from "@src/app/component.blocks/FormInputField";
 import { PanelBox } from "@src/app/component.blocks/PanelBox";
 
+export function calculateRamseteMaxVelocity(wheelRpm: number, wheelDiameterIn: number) {
+  return (wheelRpm * Math.PI * wheelDiameterIn) / 60;
+}
+
 function isPositiveNumber(candidate: string) {
   const value = Number(candidate);
   return Number.isFinite(value) && value > 0;
@@ -46,12 +50,26 @@ const RamseteConfigPanel = observer((props: { config: GeneralConfigImpl }) => {
         />
         <FormInputField
           sx={{ width: "8rem" }}
-          label="Max V (in/s)"
-          getValue={() => config.ramseteMaxVelocity.toString()}
+          label="Wheel RPM"
+          getValue={() => config.ramseteWheelRpm.toString()}
           setValue={(value: string) =>
             app.history.execute(
-              `Change Ramsete max velocity`,
-              new UpdateProperties(config, { ramseteMaxVelocity: clamp(Number(value), 1, 1000).toUser() })
+              `Change Ramsete wheel RPM`,
+              new UpdateProperties(config, { ramseteWheelRpm: clamp(Number(value), 1, 10000).toUser() })
+            )
+          }
+          isValidIntermediate={() => true}
+          isValidValue={isPositiveNumber}
+          numeric
+        />
+        <FormInputField
+          sx={{ width: "9rem" }}
+          label="Wheel Dia (in)"
+          getValue={() => config.ramseteWheelDiameterIn.toString()}
+          setValue={(value: string) =>
+            app.history.execute(
+              `Change Ramsete wheel diameter`,
+              new UpdateProperties(config, { ramseteWheelDiameterIn: clamp(Number(value), 0.1, 100).toUser() })
             )
           }
           isValidIntermediate={() => true}
@@ -72,6 +90,9 @@ const RamseteConfigPanel = observer((props: { config: GeneralConfigImpl }) => {
           isValidValue={isPositiveNumber}
           numeric
         />
+        <Typography variant="body2" sx={{ minWidth: "9rem" }}>
+          Max V: {config.ramseteMaxVelocity.toFixed(2)} in/s
+        </Typography>
       </PanelBox>
     </>
   );
@@ -119,7 +140,10 @@ export class GeneralConfigImpl implements GeneralConfig {
   ramseteDt: number = 0.02;
   @ValidateNumber(num => num > 0)
   @Expose()
-  ramseteMaxVelocity: number = 60;
+  ramseteWheelRpm: number = 360;
+  @ValidateNumber(num => num > 0)
+  @Expose()
+  ramseteWheelDiameterIn: number = 3.25;
   @ValidateNumber(num => num > 0)
   @Expose()
   ramseteMaxAcceleration: number = 120;
@@ -135,6 +159,10 @@ export class GeneralConfigImpl implements GeneralConfig {
 
   get format() {
     return this.format_;
+  }
+
+  get ramseteMaxVelocity() {
+    return calculateRamseteMaxVelocity(this.ramseteWheelRpm, this.ramseteWheelDiameterIn);
   }
 
   getAdditionalConfigUI() {
