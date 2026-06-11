@@ -38,24 +38,6 @@ const SimulationPanelBody = observer(() => {
 
   return (
     <Box id="SimulationPanel">
-      <Typography gutterBottom>Mode</Typography>
-      <PanelBox>
-        <Select
-          size="small"
-          sx={{ minWidth: "8rem" }}
-          value={simulation.mode}
-          renderValue={value => (value === "ramsete" ? "Ramsete" : "Visual")}
-          onChange={onModeChange}>
-          <MenuItem value="ramsete">Ramsete</MenuItem>
-          <MenuItem value="visual">Visual</MenuItem>
-        </Select>
-        <Typography variant="body2" className="SimulationPanel-Status">
-          {simulation.mode === "ramsete" && !canUseRamsete
-            ? "Visual fallback"
-            : formatStatus(route?.mode ?? simulation.mode)}
-        </Typography>
-      </PanelBox>
-
       <PanelBox flexWrap="wrap">
         <Button
           className="SimulationPanel-Button"
@@ -73,6 +55,26 @@ const SimulationPanelBody = observer(() => {
           onClick={isEntireRun ? simulation.stop : simulation.runEntireRoute}>
           {isEntireRun ? "Stop" : "Run Entire Route"}
         </Button>
+      </PanelBox>
+
+      <Typography marginTop="12px" gutterBottom>
+        Mode
+      </Typography>
+      <PanelBox>
+        <Select
+          size="small"
+          sx={{ minWidth: "8rem" }}
+          value={simulation.mode}
+          renderValue={value => (value === "ramsete" ? "Ramsete" : "Visual")}
+          onChange={onModeChange}>
+          <MenuItem value="ramsete">Ramsete</MenuItem>
+          <MenuItem value="visual">Visual</MenuItem>
+        </Select>
+        <Typography variant="body2" className="SimulationPanel-Status">
+          {simulation.mode === "ramsete" && !canUseRamsete
+            ? "Visual fallback"
+            : formatStatus(route?.mode ?? simulation.mode)}
+        </Typography>
       </PanelBox>
 
       <PanelBox flexWrap="wrap">

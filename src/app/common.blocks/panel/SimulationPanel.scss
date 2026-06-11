@@ -1,6 +1,10 @@
 .SimulationPanel-Button {
-  flex: 1 1 8rem;
-  min-width: 8rem !important;
+  flex: 1 1 7rem;
+  min-width: 7rem !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+  white-space: nowrap;
+  font-size: 0.75rem !important;
   text-transform: none !important;
 }
 
