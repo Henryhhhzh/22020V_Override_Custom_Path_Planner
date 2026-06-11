@@ -29,6 +29,7 @@ import { LemLibFormatV0_4 } from "../format/LemLibFormatV0_4";
 import { LemLibFormatV1_0 } from "../format/LemLibFormatV1_0";
 import { UserInterface } from "./Layout";
 import { CoordinateSystem, Dimension, getNamedCoordinateSystems } from "./CoordinateSystem";
+import { SimulationController } from "./Simulation";
 
 export const APP_VERSION = new SemVer(APP_VERSION_STRING);
 
@@ -56,6 +57,7 @@ export class MainApp {
   readonly history: CommandHistory = new CommandHistory(this);
   readonly fieldEditor = new FieldEditor();
   readonly speedEditor = new SpeedEditor();
+  readonly simulation = new SimulationController(this);
 
   // null = loading, undefined = not available
   public latestVersion: SemVer | null | undefined = undefined;
@@ -313,6 +315,7 @@ export class MainApp {
   }
 
   resetUserControl(): void {
+    this.simulation.stop();
     this.selected = [];
     this.expanded = [];
     this.lastInterestedPath = undefined;

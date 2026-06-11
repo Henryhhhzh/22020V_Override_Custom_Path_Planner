@@ -125,3 +125,26 @@ test("visual simulation route produces straight and curved metrics", () => {
     true
   );
 });
+
+test("simulation controller runs and finishes selected path playback", () => {
+  const { app } = getAppStores();
+  const format = new LemLibFormatV0_4();
+  setFormat(format);
+  const path = addPath(format, "Selected", new Segment(new EndControl(0, 0, 0), new EndControl(24, 0, 0)));
+
+  action(() => {
+    app.setSelected([path]);
+    app.simulation.mode = "visual";
+  })();
+  app.simulation.runSelectedPath();
+
+  expect(app.simulation.status).toBe("running");
+  expect(app.simulation.currentPath).toBe(path);
+
+  app.simulation.tick(performance.now() + app.simulation.route!.totalTime * 1000 + 100);
+
+  expect(app.simulation.status).toBe("finished");
+  expect(app.simulation.currentPath).toBe(path);
+
+  app.simulation.stop();
+});

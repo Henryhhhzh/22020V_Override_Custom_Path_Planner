@@ -1,4 +1,5 @@
 import type { MainApp } from "./MainApp";
+import { makeAutoObservable, observable } from "mobx";
 import { Path, Point } from "./Path";
 import { generateRamseteTrajectory, unwrapAngle } from "./RamseteTrajectory";
 import { UnitConverter, UnitOfLength } from "./Unit";
@@ -43,6 +44,104 @@ interface RamseteCapableConfig {
 
 const VISUAL_PATH_DURATION_SECONDS = 4;
 const STRAIGHT_OMEGA_EPSILON = 1e-6;
+
+export class SimulationController {
+  mode: SimulationMode = "ramsete";
+  status: SimulationStatus = "idle";
+  route: SimulationRoute | undefined = undefined;
+  current: SimulationSample | undefined = undefined;
+
+  private startTimeMs: number = 0;
+  private animationFrameId: number | undefined = undefined;
+
+  constructor(private readonly app: MainApp) {
+    makeAutoObservable(
+      this,
+      {
+        app: false,
+        route: observable.ref,
+        current: observable.ref,
+        animationFrameId: false
+      },
+      { autoBind: true }
+    );
+  }
+
+  get isRunning() {
+    return this.status === "running";
+  }
+
+  get selectedPath() {
+    return this.app.interestedPath();
+  }
+
+  get currentPath() {
+    return this.current?.path;
+  }
+
+  runSelectedPath() {
+    const route = createSelectedSimulationRoute(this.app, this.mode);
+    this.start(route);
+  }
+
+  runEntireRoute() {
+    const route = createEntireSimulationRoute(this.app, this.mode);
+    this.start(route);
+  }
+
+  stop() {
+    this.cancelAnimationFrame();
+    this.status = "idle";
+    this.route = undefined;
+    this.current = undefined;
+    this.startTimeMs = 0;
+  }
+
+  tick(nowMs: number = getNowMs()) {
+    if (this.route === undefined || this.status !== "running") return;
+
+    const elapsed = (nowMs - this.startTimeMs) / 1000;
+
+    if (elapsed >= this.route.totalTime) {
+      this.current = sampleSimulationRoute(this.route, this.route.totalTime);
+      this.status = "finished";
+      this.cancelAnimationFrame();
+      return;
+    }
+
+    this.current = sampleSimulationRoute(this.route, elapsed);
+    this.requestAnimationFrame();
+  }
+
+  private start(route: SimulationRoute | undefined) {
+    if (route === undefined) return;
+
+    this.cancelAnimationFrame();
+    this.route = route;
+    this.status = "running";
+    this.current = route.samples[0];
+    this.startTimeMs = getNowMs();
+    this.requestAnimationFrame();
+  }
+
+  private requestAnimationFrame() {
+    if (typeof window === "undefined") return;
+
+    this.cancelAnimationFrame();
+    this.animationFrameId = window.requestAnimationFrame(this.tick);
+  }
+
+  private cancelAnimationFrame() {
+    if (this.animationFrameId === undefined || typeof window === "undefined") return;
+
+    window.cancelAnimationFrame(this.animationFrameId);
+    this.animationFrameId = undefined;
+  }
+}
+
+function getNowMs() {
+  return typeof performance === "undefined" ? Date.now() : performance.now();
+}
 
 function isRamseteCapableConfig(config: unknown): config is RamseteCapableConfig {
   const candidate = config as Partial<RamseteCapableConfig>;
