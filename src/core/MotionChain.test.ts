@@ -1,0 +1,105 @@
+import { action } from "mobx";
+import { getAppStores } from "./MainApp";
+import { EndControl, Segment } from "./Path";
+import {
+  buildMotionChainOrder,
+  findMotionChainConnections,
+  findSnapCandidateForEndpoint,
+  getMotionChainRouteStatus,
+  getPathStartEndControls
+} from "./MotionChain";
+import { LemLibFormatV0_4 } from "@format/LemLibFormatV0_4";
+
+beforeEach(
+  action(() => {
+    const { app } = getAppStores();
+    const format = new LemLibFormatV0_4();
+
+    app.resetUserControl();
+    app.format = format;
+    app.paths = [];
+  })
+);
+
+function addPath(name: string, start: EndControl, end: EndControl) {
+  const { app } = getAppStores();
+  const path = app.format.createPath(new Segment(start, end));
+  path.name = name;
+  app.paths.push(path);
+
+  return path;
+}
+
+test("detects end-to-start pairs within two inches", () => {
+  const { app } = getAppStores();
+  const first = addPath("First", new EndControl(0, 0, 0), new EndControl(24, 0, 90));
+  const second = addPath("Second", new EndControl(25, 0, 180), new EndControl(48, 0, 180));
+
+  const connections = findMotionChainConnections(app, 2);
+
+  expect(connections).toHaveLength(1);
+  expect(connections[0].fromPath).toBe(first);
+  expect(connections[0].toPath).toBe(second);
+  expect(connections[0].isOrdered).toBe(true);
+  expect(connections[0].isAmbiguous).toBe(false);
+});
+
+test("does not connect same path, locked paths, hidden paths, or locked endpoints", () => {
+  const { app } = getAppStores();
+  const first = addPath("First", new EndControl(0, 0, 0), new EndControl(24, 0, 0));
+  const lockedPath = addPath("Locked", new EndControl(24, 0, 0), new EndControl(48, 0, 0));
+  const hiddenPath = addPath("Hidden", new EndControl(24, 0, 0), new EndControl(48, 0, 0));
+  const lockedEndpoint = addPath("Locked endpoint", new EndControl(24, 0, 0), new EndControl(48, 0, 0));
+
+  action(() => {
+    lockedPath.lock = true;
+    hiddenPath.visible = false;
+    getPathStartEndControls(lockedEndpoint)!.start.lock = true;
+  })();
+
+  const connections = findMotionChainConnections(app, 2);
+
+  expect(connections.some(connection => connection.fromPath === first && connection.toPath === first)).toBe(false);
+  expect(connections).toHaveLength(0);
+});
+
+test("marks ambiguous endpoint matches", () => {
+  const { app } = getAppStores();
+  addPath("First", new EndControl(0, 0, 0), new EndControl(24, 0, 0));
+  const second = addPath("Second", new EndControl(24.5, 0, 0), new EndControl(48, 0, 0));
+  const third = addPath("Third", new EndControl(25, 0, 0), new EndControl(48, 10, 0));
+
+  const connections = findMotionChainConnections(app, 2);
+  const candidate = findSnapCandidateForEndpoint(app, getPathStartEndControls(second)!.start, 2)!;
+
+  expect(connections).toHaveLength(2);
+  expect(connections.every(connection => connection.isAmbiguous)).toBe(true);
+  expect(candidate.isAmbiguous).toBe(true);
+  expect(candidate.toPath).toBe(second);
+  expect(connections.some(connection => connection.toPath === third)).toBe(true);
+});
+
+test("builds clear chain order without changing unrelated ordering more than needed", () => {
+  const { app } = getAppStores();
+  const first = addPath("First", new EndControl(0, 0, 0), new EndControl(24, 0, 0));
+  const unrelated = addPath("Unrelated", new EndControl(0, 20, 0), new EndControl(10, 20, 0));
+  const second = addPath("Second", new EndControl(24, 0, 0), new EndControl(48, 0, 0));
+  const [connection] = findMotionChainConnections(app, 2);
+
+  expect(buildMotionChainOrder([first, unrelated, second], [connection])).toEqual([first, second, unrelated]);
+});
+
+test("route status reports connected, unordered, ambiguous, and disconnected state", () => {
+  const { app } = getAppStores();
+  const first = addPath("First", new EndControl(0, 0, 0), new EndControl(24, 0, 0));
+  const disconnected = addPath("Disconnected", new EndControl(0, 20, 0), new EndControl(10, 20, 0));
+  const second = addPath("Second", new EndControl(24, 0, 0), new EndControl(48, 0, 0));
+
+  const status = getMotionChainRouteStatus(app, 2);
+
+  expect(status.connectedPairCount).toBe(1);
+  expect(status.unorderedConnectionCount).toBe(1);
+  expect(status.disconnectedRouteBreakCount).toBe(2);
+  expect(status.ambiguousConnectionCount).toBe(0);
+  expect(app.paths).toEqual([first, disconnected, second]);
+});
