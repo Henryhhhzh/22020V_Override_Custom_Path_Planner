@@ -105,6 +105,27 @@ test("Ramsete simulation route produces finite pose and metrics", () => {
   expect(route.samples.some(row => row.radiusIn !== undefined && Number.isFinite(row.radiusIn))).toBe(true);
 });
 
+test("Ramsete simulation follows reversed path heading and velocity", () => {
+  const { app } = getAppStores();
+  const format = new LemLibRamseteBeta();
+  const gc = format.getGeneralConfig() as any;
+  gc.pointDensity = 1;
+  gc.ramseteDt = 0.02;
+  gc.ramseteWheelRpm = 360;
+  gc.ramseteWheelDiameterIn = 3.25;
+  gc.ramseteMaxAcceleration = 120;
+  setFormat(format);
+  const path = addPath(format, "Reverse", new Segment(new EndControl(0, 0, 0), new EndControl(24, 0, 0)));
+  (path.pc as any).ramseteBackwards = true;
+
+  const route = createSimulationRoute(app, [path], "ramsete")!;
+  const movingSample = route.samples.find(sample => sample.vIps < 0)!;
+
+  expect(route.mode).toBe("ramsete");
+  expect(movingSample.vIps).toBeLessThan(0);
+  expect(movingSample.thetaRad).toBeCloseTo(Math.PI);
+});
+
 test("visual simulation route produces straight and curved metrics", () => {
   const { app } = getAppStores();
   const format = new LemLibFormatV0_4();

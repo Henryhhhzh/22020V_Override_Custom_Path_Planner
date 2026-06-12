@@ -13,6 +13,7 @@ export interface RamseteTrajectoryOptions {
   dt: number;
   maxVelocity: number;
   maxAcceleration: number;
+  reversed?: boolean;
 }
 
 export interface RamseteTrajectoryRow {
@@ -148,8 +149,13 @@ export function generateRamseteTrajectory(
   for (let i = 0; i <= stepCount + 1; i++) {
     const time = i * options.dt;
     const pose = sampleProfile(profile, Math.min(time, duration));
+    const travelTheta = getSegmentHeading(profile, pose.segmentIndex);
     const rawTheta =
-      i === stepCount + 1 ? rows[rows.length - 1].theta_rad : getSegmentHeading(profile, pose.segmentIndex);
+      i === stepCount + 1
+        ? rows[rows.length - 1].theta_rad
+        : options.reversed === true
+        ? travelTheta + Math.PI
+        : travelTheta;
     const theta = rows.length === 0 ? rawTheta : unwrapAngle(rows[rows.length - 1].theta_rad, rawTheta);
 
     rows.push({
@@ -166,7 +172,8 @@ export function generateRamseteTrajectory(
     const previous = rows[i - 1];
     const current = rows[i];
 
-    current.v_ips = Math.hypot(current.x_in - previous.x_in, current.y_in - previous.y_in) / options.dt;
+    const speed = Math.hypot(current.x_in - previous.x_in, current.y_in - previous.y_in) / options.dt;
+    current.v_ips = options.reversed === true ? -speed : speed;
     current.omega_radps = (current.theta_rad - previous.theta_rad) / options.dt;
   }
 

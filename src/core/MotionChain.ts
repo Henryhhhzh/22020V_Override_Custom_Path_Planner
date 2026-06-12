@@ -1,6 +1,6 @@
 import type { MainApp } from "./MainApp";
 import { EndControl, Path } from "./Path";
-import { firstDerivative, toHeading } from "./Calculation";
+import { boundHeading, firstDerivative, toHeading } from "./Calculation";
 import { UnitConverter, UnitOfLength } from "./Unit";
 
 export const MOTION_CHAIN_SNAP_TOLERANCE_INCHES = 2;
@@ -159,15 +159,37 @@ function getPathStartTravelHeading(path: Path): number | undefined {
   return next === undefined ? undefined : toHeading(next.subtract(start).toVector());
 }
 
+function isRamsetePathBackwards(path: Path) {
+  return (path.pc as { ramseteBackwards?: boolean }).ramseteBackwards === true;
+}
+
+function getPathStartRobotHeading(path: Path): number | undefined {
+  const travelHeading = getPathStartTravelHeading(path);
+  if (travelHeading === undefined) return undefined;
+
+  return isRamsetePathBackwards(path) ? boundHeading(travelHeading + 180) : travelHeading;
+}
+
+export function isMotionChainDsrUsingPathHeading(app: MainApp): boolean {
+  const connection = getSelectedMotionChainConnection(app);
+  if (connection === undefined) return true;
+
+  const connectionKey = getMotionChainConnectionKey(connection);
+  return app.motionChainDsrUsePathHeading.get(connectionKey) ?? true;
+}
+
 export function getMotionChainDsrPreviewHeading(app: MainApp): number | undefined {
   const connection = getSelectedMotionChainConnection(app);
   if (connection === undefined) return undefined;
 
   const connectionKey = getMotionChainConnectionKey(connection);
+  const pathHeading = getPathStartRobotHeading(connection.toPath) ?? connection.toStart.heading;
+  if (isMotionChainDsrUsingPathHeading(app)) return pathHeading;
+
   const storedHeading = app.motionChainDsrPreviewHeadings.get(connectionKey);
   if (storedHeading !== undefined) return storedHeading;
 
-  return getPathStartTravelHeading(connection.toPath) ?? connection.toStart.heading;
+  return pathHeading;
 }
 
 export function getMotionChainDsrPreviewPosition(app: MainApp): EndControl | undefined {

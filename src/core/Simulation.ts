@@ -165,6 +165,10 @@ export function canUseRamseteSimulation(app: MainApp) {
   return isRamseteCapableConfig(app.gc);
 }
 
+function isRamsetePathBackwards(path: Path) {
+  return "ramseteBackwards" in path.pc && path.pc.ramseteBackwards === true;
+}
+
 export function getEffectiveSimulationMode(app: MainApp, requestedMode: SimulationMode): SimulationMode {
   return requestedMode === "ramsete" && canUseRamseteSimulation(app) ? "ramsete" : "visual";
 }
@@ -276,7 +280,8 @@ function createRamseteSamples(app: MainApp, path: Path): SimulationSample[] {
   const rows = generateRamseteTrajectory(points, {
     dt: gc.ramseteDt,
     maxVelocity: gc.ramseteMaxVelocity,
-    maxAcceleration: gc.ramseteMaxAcceleration
+    maxAcceleration: gc.ramseteMaxAcceleration,
+    reversed: isRamsetePathBackwards(path)
   });
 
   return rows.map(row => ({

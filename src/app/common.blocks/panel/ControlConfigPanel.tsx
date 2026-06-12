@@ -25,7 +25,8 @@ import {
   getMotionChainConnectionKey,
   getMotionChainDsrPreviewHeading,
   getMotionChainDsrPreviewPosition,
-  getSelectedMotionChainConnection
+  getSelectedMotionChainConnection,
+  isMotionChainDsrUsingPathHeading
 } from "@core/MotionChain";
 
 const LEMLIB_RAMSETE_BETA_FORMAT_NAME = "LemLib Ramsete Beta";
@@ -176,7 +177,22 @@ const ControlConfigPanelBody = observer((props: {}) => {
     const newCoord = pathCst.inverseTransform({ ...coordInFCS, heading: headingValueInFCS });
     const connectionKey = getMotionChainConnectionKey(selectedMotionChainConnection);
 
+    app.motionChainDsrUsePathHeading.set(connectionKey, false);
     app.motionChainDsrPreviewHeadings.set(connectionKey, newCoord.heading);
+  };
+
+  const setUsePathHeadingValue = (value: boolean) => {
+    if (selectedMotionChainConnection === undefined) return;
+
+    const connectionKey = getMotionChainConnectionKey(selectedMotionChainConnection);
+    if (value) {
+      app.motionChainDsrUsePathHeading.delete(connectionKey);
+      app.motionChainDsrPreviewHeadings.delete(connectionKey);
+    } else {
+      const currentHeading = getMotionChainDsrPreviewHeading(app);
+      app.motionChainDsrUsePathHeading.set(connectionKey, false);
+      if (currentHeading !== undefined) app.motionChainDsrPreviewHeadings.set(connectionKey, currentHeading);
+    }
   };
 
   let xDisplayValue: string;
@@ -220,6 +236,7 @@ const ControlConfigPanelBody = observer((props: {}) => {
           selectedMotionChainConnection.toStart,
           getMotionChainDsrPreviewHeading(app)
         );
+  const isDsrUsingPathHeading = isMotionChainDsrUsingPathHeading(app);
   const motionChainDsrPreviewPosition = getMotionChainDsrPreviewPosition(app);
   const robotReadoutPosition =
     motionChainDsrPreviewPosition ?? (app.gc.showRobot && app.robot.position.visible ? app.robot.position : undefined);
@@ -374,6 +391,12 @@ const ControlConfigPanelBody = observer((props: {}) => {
             checked={app.motionChainDsrPreviewEnabled}
             onCheckedChange={value => (app.motionChainDsrPreviewEnabled = value)}
           />
+          <FormCheckbox
+            label="Use Path Heading"
+            title="Use the next path's starting Ramsete heading for DSR preview"
+            checked={isDsrUsingPathHeading}
+            onCheckedChange={setUsePathHeadingValue}
+          />
           <FormInputField
             label="DSR Heading"
             getValue={() => motionChainDsrHeadingDisplay}
@@ -383,6 +406,11 @@ const ControlConfigPanelBody = observer((props: {}) => {
             isValidIntermediate={() => true}
             isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
             disabled={app.selectedEntityCount !== 1}
+            sx={{
+              "& .MuiInputBase-root": {
+                backgroundColor: isDsrUsingPathHeading ? "rgba(255, 255, 255, 0.08)" : undefined
+              }
+            }}
             numeric
           />
         </PanelBox>

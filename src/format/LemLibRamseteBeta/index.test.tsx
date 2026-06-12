@@ -4,7 +4,7 @@ import { LemLibFormatV0_4 } from "../LemLibFormatV0_4";
 import { getAllCustomFormats } from "../Format";
 import { LemLibRamseteBeta } from ".";
 import { calculateRamseteMaxVelocity } from "./GeneralConfig";
-import { PathConfigImpl } from "../LemLibFormatV0_4/PathConfig";
+import { PathConfigImpl } from "./PathConfig";
 import { action } from "mobx";
 import { TextEncoder as NodeTextEncoder } from "util";
 
@@ -15,7 +15,7 @@ beforeAll(() => {
 const setAppPath = action((format: LemLibRamseteBeta | LemLibFormatV0_4, segment: Segment) => {
   const { app } = getAppStores();
   const path = format.createPath(segment);
-  const pc = path.pc as PathConfigImpl;
+  const pc = path.pc as any;
   pc.speedLimit.from = 0;
   pc.speedLimit.to = 127;
   pc.maxDecelerationRate = 127;
@@ -56,6 +56,13 @@ test("Ramsete max velocity is derived from wheel RPM and wheel diameter", () => 
   expect(gc.ramseteMaxVelocity).toBeCloseTo(61.261);
 });
 
+test("Ramsete path config defaults to forward", () => {
+  const format = new LemLibRamseteBeta();
+  const path = format.createPath(new Segment(new EndControl(0, 0, 0), new EndControl(24, 0, 0)));
+
+  expect((path.pc as PathConfigImpl).ramseteBackwards).toBe(false);
+});
+
 test("straight Ramsete export uses fixed time steps and stops", () => {
   const format = new LemLibRamseteBeta();
   const gc = format.getGeneralConfig() as any;
@@ -83,6 +90,27 @@ test("straight Ramsete export uses fixed time steps and stops", () => {
   });
 });
 
+test("reversed straight Ramsete export faces opposite the tangent with negative velocity", () => {
+  const format = new LemLibRamseteBeta();
+  const gc = format.getGeneralConfig() as any;
+  gc.pointDensity = 1;
+  gc.ramseteDt = 0.02;
+  gc.ramseteWheelRpm = 360;
+  gc.ramseteWheelDiameterIn = 3.25;
+  gc.ramseteMaxAcceleration = 120;
+  const path = setAppPath(format, new Segment(new EndControl(0, 0, 0), new EndControl(24, 0, 0)));
+  (path.pc as PathConfigImpl).ramseteBackwards = true;
+
+  const rows = parseRamseteRows(decodeExport(format));
+
+  expect(rows.some(row => row.v_ips < 0)).toBe(true);
+  expect(Math.max(...rows.map(row => row.v_ips))).toBeCloseTo(0);
+  rows.forEach(row => {
+    expect(row.theta_rad).toBeCloseTo(Math.PI);
+    expect(row.omega_radps).toBeCloseTo(0);
+  });
+});
+
 test("curved Ramsete export has finite changing heading and omega", () => {
   const format = new LemLibRamseteBeta();
   const gc = format.getGeneralConfig() as any;
@@ -101,6 +129,29 @@ test("curved Ramsete export has finite changing heading and omega", () => {
 
   expect(thetaRange).toBeGreaterThan(0.1);
   expect(rows.some(row => Math.abs(row.omega_radps) > 0.01)).toBe(true);
+  rows.forEach(row => {
+    expect(Number.isFinite(row.theta_rad)).toBe(true);
+    expect(Number.isFinite(row.omega_radps)).toBe(true);
+  });
+});
+
+test("reversed curved Ramsete export has finite heading and negative velocity", () => {
+  const format = new LemLibRamseteBeta();
+  const gc = format.getGeneralConfig() as any;
+  gc.pointDensity = 1;
+  gc.ramseteDt = 0.02;
+  gc.ramseteWheelRpm = 360;
+  gc.ramseteWheelDiameterIn = 3.25;
+  gc.ramseteMaxAcceleration = 120;
+  const path = setAppPath(
+    format,
+    new Segment(new EndControl(0, 0, 0), new Control(12, 0), new Control(24, 12), new EndControl(24, 24, 0))
+  );
+  (path.pc as PathConfigImpl).ramseteBackwards = true;
+
+  const rows = parseRamseteRows(decodeExport(format));
+
+  expect(rows.some(row => row.v_ips < 0)).toBe(true);
   rows.forEach(row => {
     expect(Number.isFinite(row.theta_rad)).toBe(true);
     expect(Number.isFinite(row.omega_radps)).toBe(true);

@@ -274,6 +274,59 @@ const PathHighlight = observer((props: { path: Path; fcc: FieldCanvasConverter; 
   );
 });
 
+function isRamsetePathBackwards(path: Path) {
+  return (path.pc as { ramseteBackwards?: boolean }).ramseteBackwards === true;
+}
+
+const PathDirectionChevrons = observer((props: { path: Path; fcc: FieldCanvasConverter }) => {
+  const { path, fcc } = props;
+  const points = path.cachedResult.points;
+  if (points.length < 3) return null;
+
+  const reversed = isRamsetePathBackwards(path);
+  const indices = [0.25, 0.5, 0.75]
+    .map(ratio => Math.max(1, Math.min(points.length - 2, Math.round((points.length - 1) * ratio))))
+    .filter((index, arrayIndex, array) => array.indexOf(index) === arrayIndex);
+  const markerSize = Math.max(fcc.heightInPx / 58, 10);
+  const strokeWidth = Math.max(fcc.heightInPx / 420, 1.4);
+  const stroke = reversed ? "#f0b84a" : "#d83a4e";
+
+  return (
+    <>
+      {indices.map(index => {
+        const previous = fcc.toPx(points[index - 1]);
+        const center = fcc.toPx(points[index]);
+        const next = fcc.toPx(points[index + 1]);
+        const direction = reversed ? previous.subtract(next) : next.subtract(previous);
+        const length = Math.hypot(direction.x, direction.y);
+        if (length <= 1e-6) return null;
+
+        const ux = direction.x / length;
+        const uy = direction.y / length;
+        const px = -uy;
+        const py = ux;
+        const tip = center.add(new Vector(ux * markerSize * 0.45, uy * markerSize * 0.45));
+        const base = center.add(new Vector(-ux * markerSize * 0.45, -uy * markerSize * 0.45));
+        const left = base.add(new Vector(px * markerSize * 0.34, py * markerSize * 0.34));
+        const right = base.add(new Vector(-px * markerSize * 0.34, -py * markerSize * 0.34));
+
+        return (
+          <Line
+            key={`${path.uid}-${index}`}
+            points={[left.x, left.y, tip.x, tip.y, right.x, right.y]}
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+            opacity={reversed ? 0.7 : 0.48}
+            lineCap="round"
+            lineJoin="round"
+            listening={false}
+          />
+        );
+      })}
+    </>
+  );
+});
+
 const PathSegments = observer((props: { path: Path; fcc: FieldCanvasConverter }) => {
   const { path, fcc } = props;
 
@@ -955,6 +1008,8 @@ const FieldCanvasElement = observer((props: {}) => {
             {visiblePaths.map(path => (
               <PathSegments key={path.uid} path={path} fcc={fcc} />
             ))}
+            {isRamseteBetaFormat &&
+              visiblePaths.map(path => <PathDirectionChevrons key={path.uid} path={path} fcc={fcc} />)}
             {visiblePaths.map(path => (
               <PathControls key={path.uid} path={path} fcc={fcc} motionChainConnections={motionChainConnections} />
             ))}

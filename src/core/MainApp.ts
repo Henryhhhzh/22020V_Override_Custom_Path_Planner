@@ -60,6 +60,7 @@ export class MainApp {
   readonly simulation = new SimulationController(this);
   public motionChainDsrPreviewEnabled = false;
   public motionChainDsrPreviewHeadings = new Map<string, number>();
+  public motionChainDsrUsePathHeading = new Map<string, boolean>();
 
   // null = loading, undefined = not available
   public latestVersion: SemVer | null | undefined = undefined;
@@ -324,6 +325,7 @@ export class MainApp {
     this.robot.position.visible = false;
     this.motionChainDsrPreviewEnabled = false;
     this.motionChainDsrPreviewHeadings.clear();
+    this.motionChainDsrUsePathHeading.clear();
   }
 
   resetAllEditors(): void {

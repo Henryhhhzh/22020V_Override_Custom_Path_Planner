@@ -8,7 +8,7 @@ import { Format, importPDJDataFromTextFile } from "../Format";
 import { AddKeyframe } from "@core/Command";
 import { PointCalculationResult, getPathPoints } from "@core/Calculation";
 import { GeneralConfigImpl } from "./GeneralConfig";
-import { PathConfigImpl, PathConfigPanel } from "../LemLibFormatV0_4/PathConfig";
+import { PathConfigImpl, PathConfigPanel } from "./PathConfig";
 import { UserInterface } from "@core/Layout";
 import { LemLibTarballFormatV0_5 } from "../LemLibTarballFormatV0_5";
 import { PathConfigImpl as LemLibTarballFormatV0_5PathConfigImpl } from "../LemLibTarballFormatV0_5/PathConfig";
@@ -154,7 +154,8 @@ export class LemLibRamseteBeta implements Format {
     const rows = generateRamseteTrajectory(points, {
       dt: this.gc.ramseteDt,
       maxVelocity: this.gc.ramseteMaxVelocity,
-      maxAcceleration: this.gc.ramseteMaxAcceleration
+      maxAcceleration: this.gc.ramseteMaxAcceleration,
+      reversed: (path.pc as PathConfigImpl).ramseteBackwards
     });
 
     let fileContent = "# RAMSETE v1\n";
