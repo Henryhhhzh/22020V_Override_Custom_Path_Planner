@@ -11,6 +11,7 @@ import {
   getMotionChainDsrPreviewHeading,
   getMotionChainDsrPreviewPosition,
   getSelectedMotionChainConnection,
+  isMotionChainDsrPreviewHeadingLinked,
   getPathStartEndControls
 } from "./MotionChain";
 import { LemLibFormatV0_4 } from "@format/LemLibFormatV0_4";
@@ -178,6 +179,7 @@ test("DSR preview heading defaults to start heading until overridden", () => {
 
   const connection = getSelectedMotionChainConnection(app)!;
   expect(getMotionChainDsrPreviewHeading(app)).toBe(180);
+  expect(isMotionChainDsrPreviewHeadingLinked(app)).toBe(true);
 
   action(() => {
     app.motionChainDsrPreviewHeadingKey = getMotionChainConnectionKey(connection);
@@ -185,5 +187,6 @@ test("DSR preview heading defaults to start heading until overridden", () => {
   })();
 
   expect(getMotionChainDsrPreviewHeading(app)).toBe(45);
+  expect(isMotionChainDsrPreviewHeadingLinked(app)).toBe(false);
   expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ heading: 45 });
 });

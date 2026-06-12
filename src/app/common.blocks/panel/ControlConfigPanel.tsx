@@ -25,8 +25,16 @@ import {
   getMotionChainConnectionKey,
   getMotionChainDsrPreviewHeading,
   getMotionChainDsrPreviewPosition,
-  getSelectedMotionChainConnection
+  getSelectedMotionChainConnection,
+  isMotionChainDsrPreviewHeadingLinked
 } from "@core/MotionChain";
+
+const HEADING_EPSILON = 1e-6;
+
+function getHeadingDelta(a: number, b: number) {
+  const delta = Math.abs(boundHeading(a - b));
+  return Math.min(delta, 360 - delta);
+}
 
 const ControlConfigPanelBody = observer((props: {}) => {
   const { app } = getAppStores();
@@ -171,8 +179,17 @@ const ControlConfigPanelBody = observer((props: {}) => {
     const coordInFCS = pathCst.transform(control);
     const headingValueInFCS = parseFormula(value, NumberUOA.parse)!.compute(UnitOfAngle.Degree);
     const newCoord = pathCst.inverseTransform({ ...coordInFCS, heading: headingValueInFCS });
+    const connectionKey = getMotionChainConnectionKey(selectedMotionChainConnection);
 
-    app.motionChainDsrPreviewHeadingKey = getMotionChainConnectionKey(selectedMotionChainConnection);
+    if (getHeadingDelta(newCoord.heading, selectedMotionChainConnection.toStart.heading) < HEADING_EPSILON) {
+      if (app.motionChainDsrPreviewHeadingKey === connectionKey) {
+        app.motionChainDsrPreviewHeadingKey = undefined;
+        app.motionChainDsrPreviewHeading = undefined;
+      }
+      return;
+    }
+
+    app.motionChainDsrPreviewHeadingKey = connectionKey;
     app.motionChainDsrPreviewHeading = newCoord.heading;
   };
 
@@ -217,6 +234,7 @@ const ControlConfigPanelBody = observer((props: {}) => {
           selectedMotionChainConnection.toStart,
           getMotionChainDsrPreviewHeading(app)
         );
+  const isDsrHeadingLinked = isMotionChainDsrPreviewHeadingLinked(app);
 
   const motionChainDsrPreviewPosition = getMotionChainDsrPreviewPosition(app);
   const robotReadoutPosition =
@@ -377,6 +395,11 @@ const ControlConfigPanelBody = observer((props: {}) => {
             isValidIntermediate={() => true}
             isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
             disabled={app.selectedEntityCount !== 1}
+            sx={{
+              "& .MuiInputBase-root": {
+                backgroundColor: isDsrHeadingLinked ? "rgba(255, 255, 255, 0.08)" : undefined
+              }
+            }}
             numeric
           />
         </PanelBox>

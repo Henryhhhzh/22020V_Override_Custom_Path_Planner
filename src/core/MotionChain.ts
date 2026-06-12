@@ -158,6 +158,13 @@ export function getMotionChainDsrPreviewHeading(app: MainApp): number | undefine
   return connection.toStart.heading;
 }
 
+export function isMotionChainDsrPreviewHeadingLinked(app: MainApp): boolean {
+  const connection = getSelectedMotionChainConnection(app);
+  if (connection === undefined) return false;
+
+  return app.motionChainDsrPreviewHeadingKey !== getMotionChainConnectionKey(connection);
+}
+
 export function getMotionChainDsrPreviewPosition(app: MainApp): EndControl | undefined {
   const control = app.selectedControl;
   if (!app.motionChainDsrPreviewEnabled || !(control instanceof EndControl)) return undefined;
