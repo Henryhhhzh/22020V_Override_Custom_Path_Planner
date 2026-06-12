@@ -58,6 +58,7 @@ export class MainApp {
   readonly fieldEditor = new FieldEditor();
   readonly speedEditor = new SpeedEditor();
   readonly simulation = new SimulationController(this);
+  public motionChainDsrPreviewEnabled = false;
 
   // null = loading, undefined = not available
   public latestVersion: SemVer | null | undefined = undefined;
@@ -320,6 +321,7 @@ export class MainApp {
     this.expanded = [];
     this.lastInterestedPath = undefined;
     this.robot.position.visible = false;
+    this.motionChainDsrPreviewEnabled = false;
   }
 
   resetAllEditors(): void {

@@ -17,10 +17,11 @@ import RotateLeftIcon from "@mui/icons-material/RotateLeft";
 import RotateRightIcon from "@mui/icons-material/RotateRight";
 
 import "./ControlConfigPanel.scss";
+import { FormCheckbox } from "@app/component.blocks/FormCheckbox";
 import { PanelBox } from "@src/app/component.blocks/PanelBox";
 import { CoordinateSystemTransformation } from "@src/core/CoordinateSystem";
 import { ROBOT_SENSOR_LABELS, ROBOT_SENSOR_SIDES, RobotSensorSide, getRobotSensorReadings } from "@core/RobotSensors";
-import { findMotionChainConnections } from "@core/MotionChain";
+import { getMotionChainDsrPreviewPosition, getSelectedMotionChainConnection } from "@core/MotionChain";
 
 const ControlConfigPanelBody = observer((props: {}) => {
   const { app } = getAppStores();
@@ -125,14 +126,7 @@ const ControlConfigPanelBody = observer((props: {}) => {
     return new CoordinateSystemTransformation(cs, app.fieldDimension, firstControl);
   };
 
-  const selectedMotionChainConnection = (() => {
-    const control = app.selectedControl;
-    if (app.selectedEntityCount !== 1 || !(control instanceof EndControl)) return undefined;
-
-    return findMotionChainConnections(app).find(
-      connection => connection.fromEnd === control || connection.toStart === control
-    );
-  })();
+  const selectedMotionChainConnection = getSelectedMotionChainConnection(app);
 
   const getHeadingDisplayValue = (path: Path, control: EndControl) => {
     const pathCst = getCoordinateSystemTransformation(path);
@@ -187,8 +181,11 @@ const ControlConfigPanelBody = observer((props: {}) => {
       ? ""
       : getHeadingDisplayValue(selectedMotionChainConnection.toPath, selectedMotionChainConnection.toStart);
 
+  const motionChainDsrPreviewPosition = getMotionChainDsrPreviewPosition(app);
+  const robotReadoutPosition =
+    motionChainDsrPreviewPosition ?? (app.gc.showRobot && app.robot.position.visible ? app.robot.position : undefined);
   const robotSensorReadings =
-    app.gc.showRobot && app.robot.position.visible ? getRobotSensorReadings(app, app.robot.position) : undefined;
+    robotReadoutPosition === undefined ? undefined : getRobotSensorReadings(app, robotReadoutPosition);
   const uolToInch = new UnitConverter(app.gc.uol, UnitOfLength.Inch);
   const getSensorLengthDisplay = (side: RobotSensorSide) =>
     robotSensorReadings === undefined ? "-" : `${uolToInch.fromAtoB(robotSensorReadings[side].length).toFixed(2)} in`;
@@ -205,7 +202,7 @@ const ControlConfigPanelBody = observer((props: {}) => {
     return new CoordinateSystemTransformation(cs, app.fieldDimension, firstControl);
   })();
   const robotOdom =
-    app.robot.position.visible && robotCst !== undefined ? robotCst.transform(app.robot.position) : undefined;
+    robotReadoutPosition !== undefined && robotCst !== undefined ? robotCst.transform(robotReadoutPosition) : undefined;
   const getRobotOdomDisplay = (value: number | undefined) => (value === undefined ? "-" : value.toUser().toString());
   const robotOdomHeadingDisplay =
     robotOdom === undefined || !isCoordinateWithHeading(robotOdom) ? "-" : `${robotOdom.heading.toUser()}°`;
@@ -327,6 +324,12 @@ const ControlConfigPanelBody = observer((props: {}) => {
             isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
             disabled={app.selectedEntityCount !== 1}
             numeric
+          />
+          <FormCheckbox
+            label="DSR"
+            title="Show robot outline and DSR sensor rays at this chained endpoint"
+            checked={app.motionChainDsrPreviewEnabled}
+            onCheckedChange={value => (app.motionChainDsrPreviewEnabled = value)}
           />
         </PanelBox>
       )}

@@ -7,6 +7,7 @@ import {
   findMotionChainConnections,
   findSnapCandidateForEndpoint,
   getMotionChainRouteStatus,
+  getMotionChainDsrPreviewPosition,
   getPathStartEndControls
 } from "./MotionChain";
 import { LemLibFormatV0_4 } from "@format/LemLibFormatV0_4";
@@ -132,4 +133,30 @@ test("snap command preserves separate headings and reorders a clear chain", () =
 
   expect(secondStart.x).toBe(firstEnd.x);
   expect(app.paths).toEqual([first, second]);
+});
+
+test("selected chained endpoint can drive DSR preview position", () => {
+  const { app } = getAppStores();
+  const firstEnd = new EndControl(24, 0, 90);
+  const secondStart = new EndControl(24, 0, 180);
+  addPath("First", new EndControl(0, 0, 0), firstEnd);
+  addPath("Second", secondStart, new EndControl(48, 0, 180));
+
+  action(() => {
+    app.setSelected([secondStart]);
+  })();
+
+  expect(getMotionChainDsrPreviewPosition(app)).toBeUndefined();
+
+  action(() => {
+    app.motionChainDsrPreviewEnabled = true;
+  })();
+
+  expect(getMotionChainDsrPreviewPosition(app)).toBe(secondStart);
+
+  action(() => {
+    app.setSelected([firstEnd]);
+  })();
+
+  expect(getMotionChainDsrPreviewPosition(app)).toBe(firstEnd);
 });

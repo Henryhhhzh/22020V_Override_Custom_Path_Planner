@@ -30,7 +30,12 @@ import { Box } from "@mui/material";
 import { Instance } from "@popperjs/core";
 import { TouchEventListener } from "@core/TouchEventListener";
 import { CanvasTooltip, Padding0Tooltip } from "@app/component.blocks/CanvasTooltip";
-import { MotionChainConnection, findMotionChainConnections, getMotionChainEndpointRole } from "@core/MotionChain";
+import {
+  MotionChainConnection,
+  findMotionChainConnections,
+  getMotionChainDsrPreviewPosition,
+  getMotionChainEndpointRole
+} from "@core/MotionChain";
 
 function fixControlTooCloseToTheEndControl() {
   // UX: Fix control point too close to the end control point when adding the first new cubic segment
@@ -353,6 +358,25 @@ const SimulationGhostRobot = observer((props: { fcc: FieldCanvasConverter }) => 
       stroke="#d83a4e"
       frontStroke="#ffffff"
       opacity={0.82}
+    />
+  );
+});
+
+const MotionChainDsrRobotPreview = observer((props: { fcc: FieldCanvasConverter }) => {
+  const { app } = getAppStores();
+  const pos = getMotionChainDsrPreviewPosition(app);
+  if (pos === undefined) return null;
+
+  return (
+    <RobotElement
+      fcc={props.fcc}
+      pos={pos}
+      width={app.gc.robotWidth}
+      height={app.gc.robotHeight}
+      fill="#d6a73a2f"
+      stroke="#d6a73a"
+      frontStroke="#fff0a6"
+      opacity={0.9}
     />
   );
 });
@@ -934,6 +958,7 @@ const FieldCanvasElement = observer((props: {}) => {
             {app.gc.showRobot && app.robot.position.visible && (
               <RobotElement fcc={fcc} pos={app.robot.position} width={app.gc.robotWidth} height={app.gc.robotHeight} />
             )}
+            <MotionChainDsrRobotPreview fcc={fcc} />
             <SimulationGhostRobot fcc={fcc} />
             <Group name="selected-controls" />
             <MotionChainHeadingOverlay connections={motionChainConnections} fcc={fcc} />

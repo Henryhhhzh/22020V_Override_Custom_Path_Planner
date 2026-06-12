@@ -130,6 +130,26 @@ export function findSnapCandidateForEndpoint(
   return candidate;
 }
 
+export function getSelectedMotionChainConnection(
+  app: MainApp,
+  toleranceInches: number = MOTION_CHAIN_SNAP_TOLERANCE_INCHES
+): MotionChainConnection | undefined {
+  const control = app.selectedControl;
+  if (app.selectedEntityCount !== 1 || !(control instanceof EndControl)) return undefined;
+
+  return findMotionChainConnections(app, toleranceInches).find(
+    connection => connection.fromEnd === control || connection.toStart === control
+  );
+}
+
+export function getMotionChainDsrPreviewPosition(app: MainApp): EndControl | undefined {
+  const control = app.selectedControl;
+  if (!app.motionChainDsrPreviewEnabled || !(control instanceof EndControl)) return undefined;
+  if (getSelectedMotionChainConnection(app) === undefined) return undefined;
+
+  return control;
+}
+
 export function buildMotionChainOrder(paths: Path[], connections: MotionChainConnection[]): Path[] {
   const ordered = paths.slice();
   const clearConnections = connections.filter(connection => !connection.isAmbiguous);
