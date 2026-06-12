@@ -21,7 +21,12 @@ import { FormCheckbox } from "@app/component.blocks/FormCheckbox";
 import { PanelBox } from "@src/app/component.blocks/PanelBox";
 import { CoordinateSystemTransformation } from "@src/core/CoordinateSystem";
 import { ROBOT_SENSOR_LABELS, ROBOT_SENSOR_SIDES, RobotSensorSide, getRobotSensorReadings } from "@core/RobotSensors";
-import { getMotionChainDsrPreviewPosition, getSelectedMotionChainConnection } from "@core/MotionChain";
+import {
+  getMotionChainConnectionKey,
+  getMotionChainDsrPreviewHeading,
+  getMotionChainDsrPreviewPosition,
+  getSelectedMotionChainConnection
+} from "@core/MotionChain";
 
 const ControlConfigPanelBody = observer((props: {}) => {
   const { app } = getAppStores();
@@ -136,6 +141,16 @@ const ControlConfigPanelBody = observer((props: {}) => {
     return isCoordinateWithHeading(coordInFCS) ? coordInFCS.heading.toUser().toString() : "";
   };
 
+  const getRawHeadingDisplayValue = (path: Path, control: EndControl, heading: number | undefined) => {
+    if (heading === undefined) return "";
+
+    const pathCst = getCoordinateSystemTransformation(path);
+    if (pathCst === undefined) return "";
+
+    const coordInFCS = pathCst.transform({ x: control.x, y: control.y, heading });
+    return isCoordinateWithHeading(coordInFCS) ? coordInFCS.heading.toUser().toString() : "";
+  };
+
   const setHeadingValue = (path: Path, control: EndControl, value: string, title: string) => {
     const pathCst = getCoordinateSystemTransformation(path);
     if (pathCst === undefined) return;
@@ -145,6 +160,20 @@ const ControlConfigPanelBody = observer((props: {}) => {
     const newCoord = pathCst.inverseTransform({ ...coordInFCS, heading: headingValueInFCS });
 
     app.history.execute(title, new UpdatePathTreeItems([control], { heading: newCoord.heading }));
+  };
+
+  const setDsrHeadingValue = (path: Path, control: EndControl, value: string) => {
+    if (selectedMotionChainConnection === undefined) return;
+
+    const pathCst = getCoordinateSystemTransformation(path);
+    if (pathCst === undefined) return;
+
+    const coordInFCS = pathCst.transform(control);
+    const headingValueInFCS = parseFormula(value, NumberUOA.parse)!.compute(UnitOfAngle.Degree);
+    const newCoord = pathCst.inverseTransform({ ...coordInFCS, heading: headingValueInFCS });
+
+    app.motionChainDsrPreviewHeadingKey = getMotionChainConnectionKey(selectedMotionChainConnection);
+    app.motionChainDsrPreviewHeading = newCoord.heading;
   };
 
   let xDisplayValue: string;
@@ -180,6 +209,14 @@ const ControlConfigPanelBody = observer((props: {}) => {
     selectedMotionChainConnection === undefined
       ? ""
       : getHeadingDisplayValue(selectedMotionChainConnection.toPath, selectedMotionChainConnection.toStart);
+  const motionChainDsrHeadingDisplay =
+    selectedMotionChainConnection === undefined
+      ? ""
+      : getRawHeadingDisplayValue(
+          selectedMotionChainConnection.toPath,
+          selectedMotionChainConnection.toStart,
+          getMotionChainDsrPreviewHeading(app)
+        );
 
   const motionChainDsrPreviewPosition = getMotionChainDsrPreviewPosition(app);
   const robotReadoutPosition =
@@ -330,6 +367,17 @@ const ControlConfigPanelBody = observer((props: {}) => {
             title="Show robot outline and DSR sensor rays at this chained endpoint"
             checked={app.motionChainDsrPreviewEnabled}
             onCheckedChange={value => (app.motionChainDsrPreviewEnabled = value)}
+          />
+          <FormInputField
+            label="DSR Heading"
+            getValue={() => motionChainDsrHeadingDisplay}
+            setValue={(value: string) =>
+              setDsrHeadingValue(selectedMotionChainConnection.toPath, selectedMotionChainConnection.toStart, value)
+            }
+            isValidIntermediate={() => true}
+            isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
+            disabled={app.selectedEntityCount !== 1}
+            numeric
           />
         </PanelBox>
       )}

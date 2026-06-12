@@ -142,12 +142,29 @@ export function getSelectedMotionChainConnection(
   );
 }
 
+export function getMotionChainConnectionKey(connection: MotionChainConnection): string {
+  return `${connection.fromEnd.uid}:${connection.toStart.uid}`;
+}
+
+export function getMotionChainDsrPreviewHeading(app: MainApp): number | undefined {
+  const connection = getSelectedMotionChainConnection(app);
+  if (connection === undefined) return undefined;
+
+  const connectionKey = getMotionChainConnectionKey(connection);
+  if (app.motionChainDsrPreviewHeadingKey === connectionKey && app.motionChainDsrPreviewHeading !== undefined) {
+    return app.motionChainDsrPreviewHeading;
+  }
+
+  return connection.toStart.heading;
+}
+
 export function getMotionChainDsrPreviewPosition(app: MainApp): EndControl | undefined {
   const control = app.selectedControl;
   if (!app.motionChainDsrPreviewEnabled || !(control instanceof EndControl)) return undefined;
-  if (getSelectedMotionChainConnection(app) === undefined) return undefined;
+  const heading = getMotionChainDsrPreviewHeading(app);
+  if (heading === undefined) return undefined;
 
-  return control;
+  return new EndControl(control.x, control.y, heading);
 }
 
 export function buildMotionChainOrder(paths: Path[], connections: MotionChainConnection[]): Path[] {

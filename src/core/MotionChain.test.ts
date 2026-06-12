@@ -6,8 +6,11 @@ import {
   buildMotionChainOrder,
   findMotionChainConnections,
   findSnapCandidateForEndpoint,
+  getMotionChainConnectionKey,
   getMotionChainRouteStatus,
+  getMotionChainDsrPreviewHeading,
   getMotionChainDsrPreviewPosition,
+  getSelectedMotionChainConnection,
   getPathStartEndControls
 } from "./MotionChain";
 import { LemLibFormatV0_4 } from "@format/LemLibFormatV0_4";
@@ -152,11 +155,35 @@ test("selected chained endpoint can drive DSR preview position", () => {
     app.motionChainDsrPreviewEnabled = true;
   })();
 
-  expect(getMotionChainDsrPreviewPosition(app)).toBe(secondStart);
+  expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ x: secondStart.x, y: secondStart.y, heading: 180 });
 
   action(() => {
     app.setSelected([firstEnd]);
   })();
 
-  expect(getMotionChainDsrPreviewPosition(app)).toBe(firstEnd);
+  expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ x: firstEnd.x, y: firstEnd.y, heading: 180 });
+});
+
+test("DSR preview heading defaults to start heading until overridden", () => {
+  const { app } = getAppStores();
+  const firstEnd = new EndControl(24, 0, 90);
+  const secondStart = new EndControl(24, 0, 180);
+  addPath("First", new EndControl(0, 0, 0), firstEnd);
+  addPath("Second", secondStart, new EndControl(48, 0, 180));
+
+  action(() => {
+    app.setSelected([firstEnd]);
+    app.motionChainDsrPreviewEnabled = true;
+  })();
+
+  const connection = getSelectedMotionChainConnection(app)!;
+  expect(getMotionChainDsrPreviewHeading(app)).toBe(180);
+
+  action(() => {
+    app.motionChainDsrPreviewHeadingKey = getMotionChainConnectionKey(connection);
+    app.motionChainDsrPreviewHeading = 45;
+  })();
+
+  expect(getMotionChainDsrPreviewHeading(app)).toBe(45);
+  expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ heading: 45 });
 });
