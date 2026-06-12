@@ -80,6 +80,12 @@
     }
   }
 
+  &.active {
+    background-color: var(--selected-color);
+    border-color: var(--selected-hover-color);
+    color: var(--primary-light-color);
+  }
+
   > svg {
     font-size: 36px;
     // UX: Using vertical-align: middle with line-height can not center the icon with 1 px offset

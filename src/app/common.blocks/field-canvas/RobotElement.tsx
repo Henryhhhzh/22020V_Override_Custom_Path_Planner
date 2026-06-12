@@ -15,6 +15,8 @@ const RobotElement = observer(
     fill?: string;
     stroke?: string;
     frontStroke?: string;
+    sensorStroke?: string;
+    sensorOpacity?: number;
     opacity?: number;
   }) => {
     const { app } = getAppStores();
@@ -40,9 +42,9 @@ const RobotElement = observer(
               <Line
                 key={side}
                 points={[start.x, start.y, end.x, end.y]}
-                stroke="#ff2222"
+                stroke={props.sensorStroke ?? "#ff2222"}
                 strokeWidth={Math.max(lineWidth, 1)}
-                opacity={0.9}
+                opacity={props.sensorOpacity ?? 0.9}
                 listening={false}
               />
             );

@@ -68,20 +68,29 @@ export const ExclusiveLayout = observer(() => {
         <FieldCanvasElement />
       </Box>
       <Box className="PanelIcon-Box" style={{ left: "8px", top: "8px" }}>
-        <Box className="PanelIcon" onClick={() => variables.togglePanel("menu")}>
+        <Box
+          className={classNames("PanelIcon", { active: variables.isOpenPanel("menu") })}
+          onClick={() => variables.togglePanel("menu")}>
           <MenuIcon fontSize="large" />
         </Box>
-        <Box className="PanelIcon" onClick={() => variables.togglePanel(pathTreeAccordion.id)}>
+        <Box
+          className={classNames("PanelIcon", { active: variables.isOpenPanel(pathTreeAccordion.id) })}
+          onClick={() => variables.togglePanel(pathTreeAccordion.id)}>
           {pathTreeAccordion.icon}
         </Box>
       </Box>
       <Box className="PanelIcon-Box" style={{ right: "8px", top: "8px" }}>
         {panelProps.map(panelProp => (
-          <Box className="PanelIcon" key={panelProp.id} onClick={() => variables.togglePanel(panelProp.id)}>
+          <Box
+            className={classNames("PanelIcon", { active: variables.isOpenPanel(panelProp.id) })}
+            key={panelProp.id}
+            onClick={() => variables.togglePanel(panelProp.id)}>
             {panelProp.icon}
           </Box>
         ))}
-        <Box className="PanelIcon" onClick={() => variables.togglePanel("speed-graph")}>
+        <Box
+          className={classNames("PanelIcon", { active: variables.isOpenPanel("speed-graph") })}
+          onClick={() => variables.togglePanel("speed-graph")}>
           <TimelineIcon fontSize="large" />
         </Box>
       </Box>

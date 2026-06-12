@@ -36,6 +36,13 @@ function addPath(name: string, start: EndControl, end: EndControl) {
   return path;
 }
 
+function enableSelectedDsrPreview() {
+  const { app } = getAppStores();
+  const connection = getSelectedMotionChainConnection(app)!;
+  app.motionChainDsrPreviewConnectionKeys.add(getMotionChainConnectionKey(connection));
+  return connection;
+}
+
 test("detects end-to-start pairs within two inches", () => {
   const { app } = getAppStores();
   const first = addPath("First", new EndControl(0, 0, 0), new EndControl(24, 0, 90));
@@ -153,7 +160,7 @@ test("selected chained endpoint can drive DSR preview position", () => {
   expect(getMotionChainDsrPreviewPosition(app)).toBeUndefined();
 
   action(() => {
-    app.motionChainDsrPreviewEnabled = true;
+    enableSelectedDsrPreview();
   })();
 
   expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ x: secondStart.x, y: secondStart.y, heading: 90 });
@@ -165,6 +172,30 @@ test("selected chained endpoint can drive DSR preview position", () => {
   expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ x: firstEnd.x, y: firstEnd.y, heading: 90 });
 });
 
+test("DSR preview is enabled per chained endpoint connection", () => {
+  const { app } = getAppStores();
+  const firstEnd = new EndControl(24, 0, 90);
+  const secondStart = new EndControl(24, 0, 180);
+  const secondEnd = new EndControl(48, 0, 90);
+  const thirdStart = new EndControl(48, 0, 180);
+  addPath("First", new EndControl(0, 0, 0), firstEnd);
+  addPath("Second", secondStart, secondEnd);
+  addPath("Third", thirdStart, new EndControl(72, 0, 180));
+
+  action(() => {
+    app.setSelected([firstEnd]);
+    enableSelectedDsrPreview();
+  })();
+
+  expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ x: firstEnd.x, y: firstEnd.y });
+
+  action(() => {
+    app.setSelected([secondEnd]);
+  })();
+
+  expect(getMotionChainDsrPreviewPosition(app)).toBeUndefined();
+});
+
 test("DSR preview heading defaults to next path travel heading until unlocked and overridden", () => {
   const { app } = getAppStores();
   const firstEnd = new EndControl(24, 0, 90);
@@ -174,7 +205,7 @@ test("DSR preview heading defaults to next path travel heading until unlocked an
 
   action(() => {
     app.setSelected([firstEnd]);
-    app.motionChainDsrPreviewEnabled = true;
+    enableSelectedDsrPreview();
   })();
 
   const connection = getSelectedMotionChainConnection(app)!;
@@ -201,7 +232,7 @@ test("DSR path heading default respects reversed next path", () => {
   action(() => {
     (second.pc as any).ramseteBackwards = true;
     app.setSelected([firstEnd]);
-    app.motionChainDsrPreviewEnabled = true;
+    enableSelectedDsrPreview();
   })();
 
   expect(isMotionChainDsrUsingPathHeading(app)).toBe(true);

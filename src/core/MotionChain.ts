@@ -174,17 +174,18 @@ export function isMotionChainDsrUsingPathHeading(app: MainApp): boolean {
   const connection = getSelectedMotionChainConnection(app);
   if (connection === undefined) return true;
 
+  return isMotionChainConnectionUsingPathHeading(app, connection);
+}
+
+export function isMotionChainConnectionUsingPathHeading(app: MainApp, connection: MotionChainConnection): boolean {
   const connectionKey = getMotionChainConnectionKey(connection);
   return app.motionChainDsrUsePathHeading.get(connectionKey) ?? true;
 }
 
-export function getMotionChainDsrPreviewHeading(app: MainApp): number | undefined {
-  const connection = getSelectedMotionChainConnection(app);
-  if (connection === undefined) return undefined;
-
+export function getMotionChainDsrPreviewHeadingForConnection(app: MainApp, connection: MotionChainConnection) {
   const connectionKey = getMotionChainConnectionKey(connection);
   const pathHeading = getPathStartRobotHeading(connection.toPath) ?? connection.toStart.heading;
-  if (isMotionChainDsrUsingPathHeading(app)) return pathHeading;
+  if (isMotionChainConnectionUsingPathHeading(app, connection)) return pathHeading;
 
   const storedHeading = app.motionChainDsrPreviewHeadings.get(connectionKey);
   if (storedHeading !== undefined) return storedHeading;
@@ -192,10 +193,28 @@ export function getMotionChainDsrPreviewHeading(app: MainApp): number | undefine
   return pathHeading;
 }
 
+export function getMotionChainDsrPreviewHeading(app: MainApp): number | undefined {
+  const connection = getSelectedMotionChainConnection(app);
+  if (connection === undefined) return undefined;
+
+  return getMotionChainDsrPreviewHeadingForConnection(app, connection);
+}
+
+export function isMotionChainDsrPreviewEnabledForConnection(app: MainApp, connection: MotionChainConnection) {
+  return app.motionChainDsrPreviewConnectionKeys.has(getMotionChainConnectionKey(connection));
+}
+
+export function isMotionChainDsrPreviewEnabled(app: MainApp): boolean {
+  const connection = getSelectedMotionChainConnection(app);
+  return connection !== undefined && isMotionChainDsrPreviewEnabledForConnection(app, connection);
+}
+
 export function getMotionChainDsrPreviewPosition(app: MainApp): EndControl | undefined {
   const control = app.selectedControl;
-  if (!app.motionChainDsrPreviewEnabled || !(control instanceof EndControl)) return undefined;
-  const heading = getMotionChainDsrPreviewHeading(app);
+  if (!(control instanceof EndControl)) return undefined;
+  const connection = getSelectedMotionChainConnection(app);
+  if (connection === undefined || !isMotionChainDsrPreviewEnabledForConnection(app, connection)) return undefined;
+  const heading = getMotionChainDsrPreviewHeadingForConnection(app, connection);
   if (heading === undefined) return undefined;
 
   return new EndControl(control.x, control.y, heading);

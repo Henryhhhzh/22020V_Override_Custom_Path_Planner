@@ -33,11 +33,14 @@ import { CanvasTooltip, Padding0Tooltip } from "@app/component.blocks/CanvasTool
 import {
   MotionChainConnection,
   findMotionChainConnections,
+  getMotionChainDsrPreviewHeadingForConnection,
   getMotionChainDsrPreviewPosition,
-  getMotionChainEndpointRole
+  getMotionChainEndpointRole,
+  isMotionChainDsrPreviewEnabledForConnection
 } from "@core/MotionChain";
 
 const LEMLIB_RAMSETE_BETA_FORMAT_NAME = "LemLib Ramsete Beta";
+const DSR_FLASH_WINDOW_SECONDS = 0.36;
 
 function fixControlTooCloseToTheEndControl() {
   // UX: Fix control point too close to the end control point when adding the first new cubic segment
@@ -416,6 +419,67 @@ const SimulationGhostRobot = observer((props: { fcc: FieldCanvasConverter }) => 
     />
   );
 });
+
+const SimulationDsrFlashRobot = observer(
+  (props: { fcc: FieldCanvasConverter; connections: MotionChainConnection[] }) => {
+    const { app } = getAppStores();
+    const route = app.simulation.route;
+    const current = app.simulation.current;
+    if (app.simulation.status !== "running" || route === undefined || current === undefined) return null;
+
+    let bestFlash:
+      | {
+          delta: number;
+          pos: EndControl;
+        }
+      | undefined;
+
+    props.connections
+      .filter(connection => isMotionChainDsrPreviewEnabledForConnection(app, connection))
+      .forEach(connection => {
+        const heading = getMotionChainDsrPreviewHeadingForConnection(app, connection);
+        const candidates = [
+          { path: connection.fromPath, time: "end" as const, point: connection.fromEnd },
+          { path: connection.toPath, time: "start" as const, point: connection.toStart }
+        ];
+
+        candidates.forEach(candidate => {
+          route.runs
+            .filter(run => run.path === candidate.path)
+            .forEach(run => {
+              const hitTime = candidate.time === "end" ? run.startTime + run.duration : run.startTime;
+              const delta = Math.abs(current.time - hitTime);
+              if (delta > DSR_FLASH_WINDOW_SECONDS) return;
+              if (bestFlash !== undefined && delta >= bestFlash.delta) return;
+
+              bestFlash = {
+                delta,
+                pos: new EndControl(candidate.point.x, candidate.point.y, heading)
+              };
+            });
+        });
+      });
+
+    if (bestFlash === undefined) return null;
+
+    const intensity = 1 - bestFlash.delta / DSR_FLASH_WINDOW_SECONDS;
+
+    return (
+      <RobotElement
+        fcc={props.fcc}
+        pos={bestFlash.pos}
+        width={app.gc.robotWidth}
+        height={app.gc.robotHeight}
+        fill="#d6a73a18"
+        stroke="#d6a73a"
+        frontStroke="#fff0a6"
+        sensorStroke="#ff2b2b"
+        sensorOpacity={0.2 + intensity * 0.8}
+        opacity={0.35 + intensity * 0.45}
+      />
+    );
+  }
+);
 
 const MotionChainDsrRobotPreview = observer((props: { fcc: FieldCanvasConverter }) => {
   const { app } = getAppStores();
@@ -939,6 +1003,7 @@ const FieldCanvasElement = observer((props: {}) => {
   const activeSimulationPath = app.simulation.currentPath;
   const motionChainConnections = findMotionChainConnections(app);
   const isRamseteBetaFormat = app.format.getName() === LEMLIB_RAMSETE_BETA_FORMAT_NAME;
+  const isSimulationRunning = app.simulation.status === "running";
   const isVisiblePath = (path: Path | undefined) => path !== undefined && visiblePaths.includes(path);
 
   return (
@@ -1013,11 +1078,12 @@ const FieldCanvasElement = observer((props: {}) => {
             {visiblePaths.map(path => (
               <PathControls key={path.uid} path={path} fcc={fcc} motionChainConnections={motionChainConnections} />
             ))}
-            {app.gc.showRobot && app.robot.position.visible && (
+            {!isSimulationRunning && app.gc.showRobot && app.robot.position.visible && (
               <RobotElement fcc={fcc} pos={app.robot.position} width={app.gc.robotWidth} height={app.gc.robotHeight} />
             )}
-            <MotionChainDsrRobotPreview fcc={fcc} />
+            {!isSimulationRunning && <MotionChainDsrRobotPreview fcc={fcc} />}
             <SimulationGhostRobot fcc={fcc} />
+            <SimulationDsrFlashRobot fcc={fcc} connections={motionChainConnections} />
             <Group name="selected-controls" />
             {!isRamseteBetaFormat && <MotionChainHeadingOverlay connections={motionChainConnections} fcc={fcc} />}
             <AreaSelectionElement

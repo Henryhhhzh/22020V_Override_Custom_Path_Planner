@@ -26,6 +26,7 @@ import {
   getMotionChainDsrPreviewHeading,
   getMotionChainDsrPreviewPosition,
   getSelectedMotionChainConnection,
+  isMotionChainDsrPreviewEnabled,
   isMotionChainDsrUsingPathHeading
 } from "@core/MotionChain";
 
@@ -195,6 +196,14 @@ const ControlConfigPanelBody = observer((props: {}) => {
     }
   };
 
+  const setDsrPreviewEnabled = (value: boolean) => {
+    if (selectedMotionChainConnection === undefined) return;
+
+    const connectionKey = getMotionChainConnectionKey(selectedMotionChainConnection);
+    if (value) app.motionChainDsrPreviewConnectionKeys.add(connectionKey);
+    else app.motionChainDsrPreviewConnectionKeys.delete(connectionKey);
+  };
+
   let xDisplayValue: string;
   let yDisplayValue: string;
   let headingDisplayValue: string;
@@ -237,6 +246,7 @@ const ControlConfigPanelBody = observer((props: {}) => {
           getMotionChainDsrPreviewHeading(app)
         );
   const isDsrUsingPathHeading = isMotionChainDsrUsingPathHeading(app);
+  const isDsrPreviewEnabled = isMotionChainDsrPreviewEnabled(app);
   const motionChainDsrPreviewPosition = getMotionChainDsrPreviewPosition(app);
   const robotReadoutPosition =
     motionChainDsrPreviewPosition ?? (app.gc.showRobot && app.robot.position.visible ? app.robot.position : undefined);
@@ -388,8 +398,8 @@ const ControlConfigPanelBody = observer((props: {}) => {
           <FormCheckbox
             label="DSR"
             title="Show robot outline and DSR sensor rays at this chained endpoint"
-            checked={app.motionChainDsrPreviewEnabled}
-            onCheckedChange={value => (app.motionChainDsrPreviewEnabled = value)}
+            checked={isDsrPreviewEnabled}
+            onCheckedChange={setDsrPreviewEnabled}
           />
           <FormCheckbox
             label="Use Path Heading"

@@ -58,7 +58,7 @@ export class MainApp {
   readonly fieldEditor = new FieldEditor();
   readonly speedEditor = new SpeedEditor();
   readonly simulation = new SimulationController(this);
-  public motionChainDsrPreviewEnabled = false;
+  public motionChainDsrPreviewConnectionKeys = new Set<string>();
   public motionChainDsrPreviewHeadings = new Map<string, number>();
   public motionChainDsrUsePathHeading = new Map<string, boolean>();
 
@@ -323,7 +323,7 @@ export class MainApp {
     this.expanded = [];
     this.lastInterestedPath = undefined;
     this.robot.position.visible = false;
-    this.motionChainDsrPreviewEnabled = false;
+    this.motionChainDsrPreviewConnectionKeys.clear();
     this.motionChainDsrPreviewHeadings.clear();
     this.motionChainDsrUsePathHeading.clear();
   }
