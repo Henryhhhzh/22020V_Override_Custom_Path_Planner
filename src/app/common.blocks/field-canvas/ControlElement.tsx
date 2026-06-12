@@ -12,13 +12,14 @@ import React from "react";
 import { TouchEventListener } from "@core/TouchEventListener";
 import { useMobxStorage } from "@core/Hook";
 import { FieldCanvasConverter, isKonvaTouchEvent } from "@core/Canvas";
-import { findSnapCandidateForEndpoint } from "@core/MotionChain";
+import { MotionChainEndpointRole, findSnapCandidateForEndpoint } from "@core/MotionChain";
 
 export interface ControlElementProps {
   lastControl: boolean;
   cp: AnyControl;
   path: Path;
   fcc: FieldCanvasConverter;
+  motionChainRole?: MotionChainEndpointRole;
 }
 
 function getFollowersAndRemaining(
@@ -395,7 +396,14 @@ const ControlElement = observer((props: ControlElementProps) => {
   const lineWidth = props.fcc.heightInPx / 600;
   const cpRadius = (props.fcc.heightInPx / 40) * (app.hoverItem === props.cp.uid ? 1.5 : 1);
   const cpInPx = props.fcc.toPx(props.cp.toVector()); // ALGO: Use toVector() for better performance
-  const fillColor = app.isSelected(props.cp) ? "#9F1D2Edf" : "#9F1D2E6f";
+  const motionChainColor = props.motionChainRole === "fromEnd" ? "#d6a73a" : "#ffe08a";
+  const fillColor =
+    props.motionChainRole !== undefined
+      ? `${motionChainColor}bf`
+      : app.isSelected(props.cp)
+      ? "#9F1D2Edf"
+      : "#9F1D2E6f";
+  const headingStroke = props.motionChainRole === undefined ? "#000" : motionChainColor;
 
   function onClickFirstOrLastControlPoint(event: Konva.KonvaEventObject<MouseEvent>) {
     const evt = event.evt;
@@ -415,6 +423,19 @@ const ControlElement = observer((props: ControlElementProps) => {
 
   return (
     <Portal selector=".selected-controls" enabled={app.isSelected(props.cp)}>
+      {isEndControl && props.motionChainRole !== undefined && (
+        <Circle
+          x={cpInPx.x}
+          y={cpInPx.y}
+          radius={cpRadius * 1.28}
+          stroke={motionChainColor}
+          strokeWidth={Math.max(lineWidth * 2, 1.5)}
+          opacity={0.72}
+          shadowColor={motionChainColor}
+          shadowBlur={8}
+          listening={false}
+        />
+      )}
       <Circle
         x={cpInPx.x}
         y={cpInPx.y}
@@ -441,8 +462,8 @@ const ControlElement = observer((props: ControlElementProps) => {
             cpInPx.x + Math.cos(fromHeadingInDegreeToAngleInRadian((props.cp as EndControl).heading)) * cpRadius,
             cpInPx.y - Math.sin(fromHeadingInDegreeToAngleInRadian((props.cp as EndControl).heading)) * cpRadius
           ]}
-          stroke="#000"
-          strokeWidth={lineWidth}
+          stroke={headingStroke}
+          strokeWidth={props.motionChainRole === undefined ? lineWidth : Math.max(lineWidth * 2.1, 2)}
           listening={false}
         />
       )}

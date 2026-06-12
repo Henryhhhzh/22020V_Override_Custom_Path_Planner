@@ -30,6 +30,7 @@ import { Box } from "@mui/material";
 import { Instance } from "@popperjs/core";
 import { TouchEventListener } from "@core/TouchEventListener";
 import { CanvasTooltip, Padding0Tooltip } from "@app/component.blocks/CanvasTooltip";
+import { MotionChainConnection, findMotionChainConnections, getMotionChainEndpointRole } from "@core/MotionChain";
 
 function fixControlTooCloseToTheEndControl() {
   // UX: Fix control point too close to the end control point when adding the first new cubic segment
@@ -278,19 +279,29 @@ const PathSegments = observer((props: { path: Path; fcc: FieldCanvasConverter })
   );
 });
 
-const PathControls = observer((props: { path: Path; fcc: FieldCanvasConverter }) => {
-  const { path, fcc } = props;
+const PathControls = observer(
+  (props: { path: Path; fcc: FieldCanvasConverter; motionChainConnections: MotionChainConnection[] }) => {
+    const { path, fcc } = props;
 
-  const controls = path.controls;
-  return (
-    <>
-      {controls.map((cp, cpIdx) => {
-        if (cp.visible === false) return null;
-        return <ControlElement key={cp.uid} {...{ lastControl: controls.length === cpIdx + 1, path, fcc, cp }} />;
-      })}
-    </>
-  );
-});
+    const controls = path.controls;
+    return (
+      <>
+        {controls.map((cp, cpIdx) => {
+          if (cp.visible === false) return null;
+          const motionChainRole =
+            cp instanceof EndControl ? getMotionChainEndpointRole(props.motionChainConnections, path, cp) : undefined;
+
+          return (
+            <ControlElement
+              key={cp.uid}
+              {...{ lastControl: controls.length === cpIdx + 1, path, fcc, cp, motionChainRole }}
+            />
+          );
+        })}
+      </>
+    );
+  }
+);
 
 const SimulationGhostRobot = observer((props: { fcc: FieldCanvasConverter }) => {
   const { app } = getAppStores();
@@ -815,6 +826,7 @@ const FieldCanvasElement = observer((props: {}) => {
   const visiblePaths = app.paths.filter(path => path.visible);
   const interestedPath = app.interestedPath();
   const activeSimulationPath = app.simulation.currentPath;
+  const motionChainConnections = findMotionChainConnections(app);
   const isVisiblePath = (path: Path | undefined) => path !== undefined && visiblePaths.includes(path);
 
   return (
@@ -885,7 +897,7 @@ const FieldCanvasElement = observer((props: {}) => {
               <PathSegments key={path.uid} path={path} fcc={fcc} />
             ))}
             {visiblePaths.map(path => (
-              <PathControls key={path.uid} path={path} fcc={fcc} />
+              <PathControls key={path.uid} path={path} fcc={fcc} motionChainConnections={motionChainConnections} />
             ))}
             {app.gc.showRobot && app.robot.position.visible && (
               <RobotElement fcc={fcc} pos={app.robot.position} width={app.gc.robotWidth} height={app.gc.robotHeight} />
