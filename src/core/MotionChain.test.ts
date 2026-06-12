@@ -1,5 +1,6 @@
 import { action } from "mobx";
 import { getAppStores } from "./MainApp";
+import { SnapMotionChainEndpoint } from "./Command";
 import { EndControl, Segment } from "./Path";
 import {
   buildMotionChainOrder,
@@ -102,4 +103,33 @@ test("route status reports connected, unordered, ambiguous, and disconnected sta
   expect(status.disconnectedRouteBreakCount).toBe(2);
   expect(status.ambiguousConnectionCount).toBe(0);
   expect(app.paths).toEqual([first, disconnected, second]);
+});
+
+test("snap command preserves separate headings and reorders a clear chain", () => {
+  const { app } = getAppStores();
+  const secondStart = new EndControl(25, 0, 180);
+  const second = addPath("Second", secondStart, new EndControl(48, 0, 180));
+  const firstEnd = new EndControl(24, 0, 90);
+  const first = addPath("First", new EndControl(0, 0, 0), firstEnd);
+  const command = new SnapMotionChainEndpoint(app.paths, secondStart, firstEnd, first, second);
+
+  expect(command.execute()).toBe(true);
+
+  expect(secondStart).not.toBe(firstEnd);
+  expect(secondStart.x).toBe(firstEnd.x);
+  expect(secondStart.y).toBe(firstEnd.y);
+  expect(firstEnd.heading).toBe(90);
+  expect(secondStart.heading).toBe(180);
+  expect(app.paths).toEqual([first, second]);
+
+  command.undo();
+
+  expect(secondStart.x).toBe(25);
+  expect(secondStart.y).toBe(0);
+  expect(app.paths).toEqual([second, first]);
+
+  command.redo();
+
+  expect(secondStart.x).toBe(firstEnd.x);
+  expect(app.paths).toEqual([first, second]);
 });

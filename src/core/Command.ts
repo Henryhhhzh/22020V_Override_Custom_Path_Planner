@@ -698,6 +698,77 @@ export class DragControls implements CancellableCommand, MergeableCommand, Updat
   }
 }
 
+export class SnapMotionChainEndpoint implements CancellableCommand, UpdatePathTreeItemsCommand {
+  private originalPosition: Vector | undefined;
+  private snappedPosition: Vector | undefined;
+  private originalOrder: Path[] = [];
+  private snappedOrder: Path[] = [];
+  private changed = false;
+
+  constructor(
+    public paths: Path[],
+    public draggedEndpoint: EndControl,
+    public targetEndpoint: EndControl,
+    public fromPath: Path,
+    public toPath: Path,
+    public shouldReorder: boolean = true
+  ) {}
+
+  execute(): boolean {
+    if (this.fromPath === this.toPath) return false;
+    if (this.draggedEndpoint.lock || this.targetEndpoint.lock || this.fromPath.lock || this.toPath.lock) return false;
+
+    this.originalPosition = this.draggedEndpoint.toVector();
+    this.snappedPosition = this.targetEndpoint.toVector();
+    this.originalOrder = this.paths.slice();
+
+    this.draggedEndpoint.setXY(this.snappedPosition);
+    this.reorderClearChain();
+
+    this.snappedOrder = this.paths.slice();
+    this.changed =
+      this.originalPosition.distance(this.snappedPosition) > 0 ||
+      this.originalOrder.some((path, index) => path !== this.paths[index]);
+
+    return this.changed;
+  }
+
+  undo(): void {
+    if (!this.changed || this.originalPosition === undefined) return;
+
+    this.draggedEndpoint.setXY(this.originalPosition);
+    this.paths.splice(0, this.paths.length, ...this.originalOrder);
+  }
+
+  redo(): void {
+    if (!this.changed || this.snappedPosition === undefined) return;
+
+    this.draggedEndpoint.setXY(this.snappedPosition);
+    this.paths.splice(0, this.paths.length, ...this.snappedOrder);
+  }
+
+  private reorderClearChain() {
+    if (!this.shouldReorder) return;
+
+    const fromIdx = this.paths.indexOf(this.fromPath);
+    const toIdx = this.paths.indexOf(this.toPath);
+    if (fromIdx === -1 || toIdx === -1 || fromIdx + 1 === toIdx) return;
+
+    if (fromIdx < toIdx) {
+      const [toPath] = this.paths.splice(toIdx, 1);
+      this.paths.splice(fromIdx + 1, 0, toPath);
+    } else {
+      const [fromPath] = this.paths.splice(fromIdx, 1);
+      const nextToIdx = this.paths.indexOf(this.toPath);
+      this.paths.splice(nextToIdx, 0, fromPath);
+    }
+  }
+
+  get updatedItems(): readonly PathTreeItem[] {
+    return [this.draggedEndpoint, this.fromPath, this.toPath];
+  }
+}
+
 export class AddKeyframe implements CancellableCommand {
   constructor(public keyframes: KeyframeList<Keyframe>, public keyframe: Keyframe) {}
 
