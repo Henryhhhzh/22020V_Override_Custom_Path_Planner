@@ -37,6 +37,8 @@ import {
   getMotionChainEndpointRole
 } from "@core/MotionChain";
 
+const LEMLIB_RAMSETE_BETA_FORMAT_NAME = "LemLib Ramsete Beta";
+
 function fixControlTooCloseToTheEndControl() {
   // UX: Fix control point too close to the end control point when adding the first new cubic segment
   const { app } = getAppStores();
@@ -883,6 +885,7 @@ const FieldCanvasElement = observer((props: {}) => {
   const interestedPath = app.interestedPath();
   const activeSimulationPath = app.simulation.currentPath;
   const motionChainConnections = findMotionChainConnections(app);
+  const isRamseteBetaFormat = app.format.getName() === LEMLIB_RAMSETE_BETA_FORMAT_NAME;
   const isVisiblePath = (path: Path | undefined) => path !== undefined && visiblePaths.includes(path);
 
   return (
@@ -961,7 +964,7 @@ const FieldCanvasElement = observer((props: {}) => {
             <MotionChainDsrRobotPreview fcc={fcc} />
             <SimulationGhostRobot fcc={fcc} />
             <Group name="selected-controls" />
-            <MotionChainHeadingOverlay connections={motionChainConnections} fcc={fcc} />
+            {!isRamseteBetaFormat && <MotionChainHeadingOverlay connections={motionChainConnections} fcc={fcc} />}
             <AreaSelectionElement
               from={fieldEditor.areaSelection?.from}
               to={fieldEditor.areaSelection?.to}

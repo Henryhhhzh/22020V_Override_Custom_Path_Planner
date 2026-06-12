@@ -59,8 +59,7 @@ export class MainApp {
   readonly speedEditor = new SpeedEditor();
   readonly simulation = new SimulationController(this);
   public motionChainDsrPreviewEnabled = false;
-  public motionChainDsrPreviewHeadingKey: string | undefined = undefined;
-  public motionChainDsrPreviewHeading: number | undefined = undefined;
+  public motionChainDsrPreviewHeadings = new Map<string, number>();
 
   // null = loading, undefined = not available
   public latestVersion: SemVer | null | undefined = undefined;
@@ -324,8 +323,7 @@ export class MainApp {
     this.lastInterestedPath = undefined;
     this.robot.position.visible = false;
     this.motionChainDsrPreviewEnabled = false;
-    this.motionChainDsrPreviewHeadingKey = undefined;
-    this.motionChainDsrPreviewHeading = undefined;
+    this.motionChainDsrPreviewHeadings.clear();
   }
 
   resetAllEditors(): void {

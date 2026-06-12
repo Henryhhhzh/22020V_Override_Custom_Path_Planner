@@ -14,6 +14,8 @@ import { useMobxStorage } from "@core/Hook";
 import { FieldCanvasConverter, isKonvaTouchEvent } from "@core/Canvas";
 import { MotionChainEndpointRole, findSnapCandidateForEndpoint } from "@core/MotionChain";
 
+const LEMLIB_RAMSETE_BETA_FORMAT_NAME = "LemLib Ramsete Beta";
+
 export interface ControlElementProps {
   lastControl: boolean;
   cp: AnyControl;
@@ -298,6 +300,7 @@ const ControlElement = observer((props: ControlElementProps) => {
   const variables = useMobxStorage(() => new ControlVariables());
   const tiHandler = useMobxStorage(() => new TouchInteractiveHandler(props, variables));
   tiHandler.props = props;
+  const isRamseteBetaFormat = app.format.getName() === LEMLIB_RAMSETE_BETA_FORMAT_NAME;
 
   function interact(isShiftKey: boolean) {
     variables.posBeforeDrag = props.cp.toVector();
@@ -375,6 +378,8 @@ const ControlElement = observer((props: ControlElementProps) => {
   }
 
   function onWheel(event: Konva.KonvaEventObject<WheelEvent>) {
+    if (isRamseteBetaFormat) return;
+
     const evt = event.evt;
 
     // UX: Do not interact with control points if it is zooming
@@ -450,7 +455,7 @@ const ControlElement = observer((props: ControlElementProps) => {
         onTouchStart={event => tiHandler.onKonvaTouchStart(event)}
         onTouchMove={event => tiHandler.onKonvaTouchMove(event)}
         onTouchEnd={event => tiHandler.onKonvaTouchEnd(event)}
-        onWheel={isEndControl ? action(onWheel) : undefined}
+        onWheel={isEndControl && !isRamseteBetaFormat ? action(onWheel) : undefined}
         onMouseDown={action(onMouseDown)}
         // onMouseMove
         onMouseUp={action(onMouseUp)}
@@ -459,7 +464,7 @@ const ControlElement = observer((props: ControlElementProps) => {
         onDragEnd={action(onDragEnd)}
         onClick={action(onClickFirstOrLastControlPoint)}
       />
-      {isEndControl && props.motionChainRole === undefined && (
+      {isEndControl && props.motionChainRole === undefined && !isRamseteBetaFormat && (
         <Line
           points={[
             cpInPx.x,

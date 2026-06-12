@@ -25,21 +25,16 @@ import {
   getMotionChainConnectionKey,
   getMotionChainDsrPreviewHeading,
   getMotionChainDsrPreviewPosition,
-  getSelectedMotionChainConnection,
-  isMotionChainDsrPreviewHeadingLinked
+  getSelectedMotionChainConnection
 } from "@core/MotionChain";
 
-const HEADING_EPSILON = 1e-6;
-
-function getHeadingDelta(a: number, b: number) {
-  const delta = Math.abs(boundHeading(a - b));
-  return Math.min(delta, 360 - delta);
-}
+const LEMLIB_RAMSETE_BETA_FORMAT_NAME = "LemLib Ramsete Beta";
 
 const ControlConfigPanelBody = observer((props: {}) => {
   const { app } = getAppStores();
 
   const isDisabled = app.selectedControl === undefined;
+  const isRamseteBetaFormat = app.format.getName() === LEMLIB_RAMSETE_BETA_FORMAT_NAME;
 
   const flipByAxisX = function () {
     const selectedControls = app.selectedEntities.filter(
@@ -181,16 +176,7 @@ const ControlConfigPanelBody = observer((props: {}) => {
     const newCoord = pathCst.inverseTransform({ ...coordInFCS, heading: headingValueInFCS });
     const connectionKey = getMotionChainConnectionKey(selectedMotionChainConnection);
 
-    if (getHeadingDelta(newCoord.heading, selectedMotionChainConnection.toStart.heading) < HEADING_EPSILON) {
-      if (app.motionChainDsrPreviewHeadingKey === connectionKey) {
-        app.motionChainDsrPreviewHeadingKey = undefined;
-        app.motionChainDsrPreviewHeading = undefined;
-      }
-      return;
-    }
-
-    app.motionChainDsrPreviewHeadingKey = connectionKey;
-    app.motionChainDsrPreviewHeading = newCoord.heading;
+    app.motionChainDsrPreviewHeadings.set(connectionKey, newCoord.heading);
   };
 
   let xDisplayValue: string;
@@ -217,7 +203,7 @@ const ControlConfigPanelBody = observer((props: {}) => {
     }
   }
 
-  const showMotionChainHeadings = selectedMotionChainConnection !== undefined;
+  const showMotionChainHeadings = selectedMotionChainConnection !== undefined && !isRamseteBetaFormat;
   const motionChainEndHeadingDisplay =
     selectedMotionChainConnection === undefined
       ? ""
@@ -234,8 +220,6 @@ const ControlConfigPanelBody = observer((props: {}) => {
           selectedMotionChainConnection.toStart,
           getMotionChainDsrPreviewHeading(app)
         );
-  const isDsrHeadingLinked = isMotionChainDsrPreviewHeadingLinked(app);
-
   const motionChainDsrPreviewPosition = getMotionChainDsrPreviewPosition(app);
   const robotReadoutPosition =
     motionChainDsrPreviewPosition ?? (app.gc.showRobot && app.robot.position.visible ? app.robot.position : undefined);
@@ -315,7 +299,7 @@ const ControlConfigPanelBody = observer((props: {}) => {
           disabled={app.selectedEntityCount !== 1 || app.selectedControl === undefined}
           numeric
         />
-        {!showMotionChainHeadings && (
+        {!isRamseteBetaFormat && !showMotionChainHeadings && (
           <FormInputField
             label="Heading"
             getValue={() => headingDisplayValue}
@@ -348,38 +332,42 @@ const ControlConfigPanelBody = observer((props: {}) => {
       </PanelBox>
       {selectedMotionChainConnection !== undefined && (
         <PanelBox>
-          <FormInputField
-            label="End Heading"
-            getValue={() => motionChainEndHeadingDisplay}
-            setValue={(value: string) =>
-              setHeadingValue(
-                selectedMotionChainConnection.fromPath,
-                selectedMotionChainConnection.fromEnd,
-                value,
-                `Update chained end heading ${selectedMotionChainConnection.fromEnd.uid}`
-              )
-            }
-            isValidIntermediate={() => true}
-            isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
-            disabled={app.selectedEntityCount !== 1}
-            numeric
-          />
-          <FormInputField
-            label="Start Heading"
-            getValue={() => motionChainStartHeadingDisplay}
-            setValue={(value: string) =>
-              setHeadingValue(
-                selectedMotionChainConnection.toPath,
-                selectedMotionChainConnection.toStart,
-                value,
-                `Update chained start heading ${selectedMotionChainConnection.toStart.uid}`
-              )
-            }
-            isValidIntermediate={() => true}
-            isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
-            disabled={app.selectedEntityCount !== 1}
-            numeric
-          />
+          {!isRamseteBetaFormat && (
+            <>
+              <FormInputField
+                label="End Heading"
+                getValue={() => motionChainEndHeadingDisplay}
+                setValue={(value: string) =>
+                  setHeadingValue(
+                    selectedMotionChainConnection.fromPath,
+                    selectedMotionChainConnection.fromEnd,
+                    value,
+                    `Update chained end heading ${selectedMotionChainConnection.fromEnd.uid}`
+                  )
+                }
+                isValidIntermediate={() => true}
+                isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
+                disabled={app.selectedEntityCount !== 1}
+                numeric
+              />
+              <FormInputField
+                label="Start Heading"
+                getValue={() => motionChainStartHeadingDisplay}
+                setValue={(value: string) =>
+                  setHeadingValue(
+                    selectedMotionChainConnection.toPath,
+                    selectedMotionChainConnection.toStart,
+                    value,
+                    `Update chained start heading ${selectedMotionChainConnection.toStart.uid}`
+                  )
+                }
+                isValidIntermediate={() => true}
+                isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
+                disabled={app.selectedEntityCount !== 1}
+                numeric
+              />
+            </>
+          )}
           <FormCheckbox
             label="DSR"
             title="Show robot outline and DSR sensor rays at this chained endpoint"
@@ -395,11 +383,6 @@ const ControlConfigPanelBody = observer((props: {}) => {
             isValidIntermediate={() => true}
             isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
             disabled={app.selectedEntityCount !== 1}
-            sx={{
-              "& .MuiInputBase-root": {
-                backgroundColor: isDsrHeadingLinked ? "rgba(255, 255, 255, 0.08)" : undefined
-              }
-            }}
             numeric
           />
         </PanelBox>

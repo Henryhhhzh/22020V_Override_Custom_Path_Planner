@@ -11,7 +11,6 @@ import {
   getMotionChainDsrPreviewHeading,
   getMotionChainDsrPreviewPosition,
   getSelectedMotionChainConnection,
-  isMotionChainDsrPreviewHeadingLinked,
   getPathStartEndControls
 } from "./MotionChain";
 import { LemLibFormatV0_4 } from "@format/LemLibFormatV0_4";
@@ -156,16 +155,16 @@ test("selected chained endpoint can drive DSR preview position", () => {
     app.motionChainDsrPreviewEnabled = true;
   })();
 
-  expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ x: secondStart.x, y: secondStart.y, heading: 180 });
+  expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ x: secondStart.x, y: secondStart.y, heading: 90 });
 
   action(() => {
     app.setSelected([firstEnd]);
   })();
 
-  expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ x: firstEnd.x, y: firstEnd.y, heading: 180 });
+  expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ x: firstEnd.x, y: firstEnd.y, heading: 90 });
 });
 
-test("DSR preview heading defaults to start heading until overridden", () => {
+test("DSR preview heading defaults to next path travel heading until overridden", () => {
   const { app } = getAppStores();
   const firstEnd = new EndControl(24, 0, 90);
   const secondStart = new EndControl(24, 0, 180);
@@ -178,15 +177,12 @@ test("DSR preview heading defaults to start heading until overridden", () => {
   })();
 
   const connection = getSelectedMotionChainConnection(app)!;
-  expect(getMotionChainDsrPreviewHeading(app)).toBe(180);
-  expect(isMotionChainDsrPreviewHeadingLinked(app)).toBe(true);
+  expect(getMotionChainDsrPreviewHeading(app)).toBe(90);
 
   action(() => {
-    app.motionChainDsrPreviewHeadingKey = getMotionChainConnectionKey(connection);
-    app.motionChainDsrPreviewHeading = 45;
+    app.motionChainDsrPreviewHeadings.set(getMotionChainConnectionKey(connection), 45);
   })();
 
   expect(getMotionChainDsrPreviewHeading(app)).toBe(45);
-  expect(isMotionChainDsrPreviewHeadingLinked(app)).toBe(false);
   expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ heading: 45 });
 });

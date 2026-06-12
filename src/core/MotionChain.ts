@@ -1,5 +1,6 @@
 import type { MainApp } from "./MainApp";
 import { EndControl, Path } from "./Path";
+import { firstDerivative, toHeading } from "./Calculation";
 import { UnitConverter, UnitOfLength } from "./Unit";
 
 export const MOTION_CHAIN_SNAP_TOLERANCE_INCHES = 2;
@@ -146,23 +147,27 @@ export function getMotionChainConnectionKey(connection: MotionChainConnection): 
   return `${connection.fromEnd.uid}:${connection.toStart.uid}`;
 }
 
+function getPathStartTravelHeading(path: Path): number | undefined {
+  const firstSegment = path.segments[0];
+  if (firstSegment === undefined) return undefined;
+
+  const derivative = firstDerivative(firstSegment, 0);
+  if (Math.hypot(derivative.x, derivative.y) > 1e-9) return toHeading(derivative);
+
+  const start = firstSegment.first;
+  const next = path.controls.find(control => control !== start && control.distance(start) > 1e-9);
+  return next === undefined ? undefined : toHeading(next.subtract(start).toVector());
+}
+
 export function getMotionChainDsrPreviewHeading(app: MainApp): number | undefined {
   const connection = getSelectedMotionChainConnection(app);
   if (connection === undefined) return undefined;
 
   const connectionKey = getMotionChainConnectionKey(connection);
-  if (app.motionChainDsrPreviewHeadingKey === connectionKey && app.motionChainDsrPreviewHeading !== undefined) {
-    return app.motionChainDsrPreviewHeading;
-  }
+  const storedHeading = app.motionChainDsrPreviewHeadings.get(connectionKey);
+  if (storedHeading !== undefined) return storedHeading;
 
-  return connection.toStart.heading;
-}
-
-export function isMotionChainDsrPreviewHeadingLinked(app: MainApp): boolean {
-  const connection = getSelectedMotionChainConnection(app);
-  if (connection === undefined) return false;
-
-  return app.motionChainDsrPreviewHeadingKey !== getMotionChainConnectionKey(connection);
+  return getPathStartTravelHeading(connection.toPath) ?? connection.toStart.heading;
 }
 
 export function getMotionChainDsrPreviewPosition(app: MainApp): EndControl | undefined {
