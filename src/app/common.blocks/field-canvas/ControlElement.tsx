@@ -4,7 +4,7 @@ import { AnyControl, Control, EndControl, Path, Vector } from "@core/Path";
 import Konva from "konva";
 import { Circle, Line, Path as KonvaPath } from "react-konva";
 import { Portal } from "react-konva-utils";
-import { DragControls, RemovePathsAndEndControls, UpdatePathTreeItems } from "@core/Command";
+import { DragControls, RemovePathsAndEndControls, SnapMotionChainEndpoint, UpdatePathTreeItems } from "@core/Command";
 import { getAppStores } from "@core/MainApp";
 import { boundHeading, fromHeadingInDegreeToAngleInRadian, toHeading } from "@core/Calculation";
 import { MagnetReference, magnet } from "@core/Magnet";
@@ -12,6 +12,7 @@ import React from "react";
 import { TouchEventListener } from "@core/TouchEventListener";
 import { useMobxStorage } from "@core/Hook";
 import { FieldCanvasConverter, isKonvaTouchEvent } from "@core/Canvas";
+import { findSnapCandidateForEndpoint } from "@core/MotionChain";
 
 export interface ControlElementProps {
   lastControl: boolean;
@@ -350,6 +351,22 @@ const ControlElement = observer((props: ControlElementProps) => {
     }
   }
 
+  function onDragEnd(event: Konva.KonvaEventObject<DragEvent | TouchEvent>) {
+    if (!(props.cp instanceof EndControl)) return;
+
+    const candidate = findSnapCandidateForEndpoint(app, props.cp);
+    if (candidate === undefined || candidate.isAmbiguous) return;
+
+    app.history.execute(
+      `Snap motion chain endpoint ${props.cp.uid}`,
+      new SnapMotionChainEndpoint(app.paths, props.cp, candidate.targetEndpoint, candidate.fromPath, candidate.toPath)
+    );
+
+    const cpInPx = props.fcc.toPx(props.cp.toVector());
+    event.target.x(cpInPx.x);
+    event.target.y(cpInPx.y);
+  }
+
   function onMouseUp(event: Konva.KonvaEventObject<MouseEvent>) {
     if (!shouldInteract(props, event)) return;
 
@@ -413,7 +430,7 @@ const ControlElement = observer((props: ControlElementProps) => {
         onMouseUp={action(onMouseUp)}
         // onDragStart
         onDragMove={action(onDragMove)}
-        // onDragEnd
+        onDragEnd={action(onDragEnd)}
         onClick={action(onClickFirstOrLastControlPoint)}
       />
       {isEndControl && (
