@@ -1,7 +1,7 @@
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { action } from "mobx";
 import { observer } from "mobx-react-lite";
-import { AnyControl, Control, EndControl } from "@core/Path";
+import { AnyControl, Control, EndControl, Path } from "@core/Path";
 import { FormInputField, clampQuantity } from "@app/component.blocks/FormInputField";
 import { Quantity, UnitConverter, UnitOfAngle, UnitOfLength } from "@core/Unit";
 import { boundHeading, findCentralPoint } from "@core/Calculation";
@@ -20,6 +20,7 @@ import "./ControlConfigPanel.scss";
 import { PanelBox } from "@src/app/component.blocks/PanelBox";
 import { CoordinateSystemTransformation } from "@src/core/CoordinateSystem";
 import { ROBOT_SENSOR_LABELS, ROBOT_SENSOR_SIDES, RobotSensorSide, getRobotSensorReadings } from "@core/RobotSensors";
+import { findMotionChainConnections } from "@core/MotionChain";
 
 const ControlConfigPanelBody = observer((props: {}) => {
   const { app } = getAppStores();
@@ -112,6 +113,46 @@ const ControlConfigPanelBody = observer((props: {}) => {
     return new CoordinateSystemTransformation(cs, fieldDimension, firstControl);
   })();
 
+  const getCoordinateSystemTransformation = (path: Path | undefined): CoordinateSystemTransformation | undefined => {
+    if (path === undefined) return undefined;
+
+    const cs = app.coordinateSystem;
+    if (cs === undefined) return undefined;
+
+    const firstControl = path.segments[0]?.controls[0];
+    if (firstControl === undefined) return undefined;
+
+    return new CoordinateSystemTransformation(cs, app.fieldDimension, firstControl);
+  };
+
+  const selectedMotionChainConnection = (() => {
+    const control = app.selectedControl;
+    if (app.selectedEntityCount !== 1 || !(control instanceof EndControl)) return undefined;
+
+    return findMotionChainConnections(app).find(
+      connection => connection.fromEnd === control || connection.toStart === control
+    );
+  })();
+
+  const getHeadingDisplayValue = (path: Path, control: EndControl) => {
+    const pathCst = getCoordinateSystemTransformation(path);
+    if (pathCst === undefined) return "";
+
+    const coordInFCS = pathCst.transform(control);
+    return isCoordinateWithHeading(coordInFCS) ? coordInFCS.heading.toUser().toString() : "";
+  };
+
+  const setHeadingValue = (path: Path, control: EndControl, value: string, title: string) => {
+    const pathCst = getCoordinateSystemTransformation(path);
+    if (pathCst === undefined) return;
+
+    const coordInFCS = pathCst.transform(control);
+    const headingValueInFCS = parseFormula(value, NumberUOA.parse)!.compute(UnitOfAngle.Degree);
+    const newCoord = pathCst.inverseTransform({ ...coordInFCS, heading: headingValueInFCS });
+
+    app.history.execute(title, new UpdatePathTreeItems([control], { heading: newCoord.heading }));
+  };
+
   let xDisplayValue: string;
   let yDisplayValue: string;
   let headingDisplayValue: string;
@@ -135,6 +176,16 @@ const ControlConfigPanelBody = observer((props: {}) => {
       headingDisplayValue = "";
     }
   }
+
+  const showMotionChainHeadings = selectedMotionChainConnection !== undefined;
+  const motionChainEndHeadingDisplay =
+    selectedMotionChainConnection === undefined
+      ? ""
+      : getHeadingDisplayValue(selectedMotionChainConnection.fromPath, selectedMotionChainConnection.fromEnd);
+  const motionChainStartHeadingDisplay =
+    selectedMotionChainConnection === undefined
+      ? ""
+      : getHeadingDisplayValue(selectedMotionChainConnection.toPath, selectedMotionChainConnection.toStart);
 
   const robotSensorReadings =
     app.gc.showRobot && app.robot.position.visible ? getRobotSensorReadings(app, app.robot.position) : undefined;
@@ -212,35 +263,73 @@ const ControlConfigPanelBody = observer((props: {}) => {
           disabled={app.selectedEntityCount !== 1 || app.selectedControl === undefined}
           numeric
         />
-        <FormInputField
-          label="Heading"
-          getValue={() => headingDisplayValue}
-          setValue={(value: string) => {
-            if (cst === undefined) return;
-            const control = app.selectedControl;
-            if (!(control instanceof EndControl)) return;
+        {!showMotionChainHeadings && (
+          <FormInputField
+            label="Heading"
+            getValue={() => headingDisplayValue}
+            setValue={(value: string) => {
+              if (cst === undefined) return;
+              const control = app.selectedControl;
+              if (!(control instanceof EndControl)) return;
 
-            const coordInFCS = cst.transform(control);
-            const headingValueInFCS = parseFormula(value, NumberUOA.parse)!.compute(UnitOfAngle.Degree);
-            const newCoord = cst.inverseTransform({ ...coordInFCS, heading: headingValueInFCS });
+              const coordInFCS = cst.transform(control);
+              const headingValueInFCS = parseFormula(value, NumberUOA.parse)!.compute(UnitOfAngle.Degree);
+              const newCoord = cst.inverseTransform({ ...coordInFCS, heading: headingValueInFCS });
 
-            const controlUid = control.uid;
-            const finalVal = newCoord.heading;
+              const controlUid = control.uid;
+              const finalVal = newCoord.heading;
 
-            app.history.execute(
-              `Update control ${controlUid} heading value`,
-              new UpdatePathTreeItems([control], { heading: finalVal })
-            );
-          }}
-          isValidIntermediate={() => true}
-          isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
-          disabled={app.selectedEntityCount !== 1 || app.selectedControl === undefined}
-          sx={{
-            visibility: app.selectedEntityCount === 1 && !(app.selectedControl instanceof EndControl) ? "hidden" : ""
-          }}
-          numeric
-        />
+              app.history.execute(
+                `Update control ${controlUid} heading value`,
+                new UpdatePathTreeItems([control], { heading: finalVal })
+              );
+            }}
+            isValidIntermediate={() => true}
+            isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
+            disabled={app.selectedEntityCount !== 1 || app.selectedControl === undefined}
+            sx={{
+              visibility: app.selectedEntityCount === 1 && !(app.selectedControl instanceof EndControl) ? "hidden" : ""
+            }}
+            numeric
+          />
+        )}
       </PanelBox>
+      {selectedMotionChainConnection !== undefined && (
+        <PanelBox>
+          <FormInputField
+            label="End Heading"
+            getValue={() => motionChainEndHeadingDisplay}
+            setValue={(value: string) =>
+              setHeadingValue(
+                selectedMotionChainConnection.fromPath,
+                selectedMotionChainConnection.fromEnd,
+                value,
+                `Update chained end heading ${selectedMotionChainConnection.fromEnd.uid}`
+              )
+            }
+            isValidIntermediate={() => true}
+            isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
+            disabled={app.selectedEntityCount !== 1}
+            numeric
+          />
+          <FormInputField
+            label="Start Heading"
+            getValue={() => motionChainStartHeadingDisplay}
+            setValue={(value: string) =>
+              setHeadingValue(
+                selectedMotionChainConnection.toPath,
+                selectedMotionChainConnection.toStart,
+                value,
+                `Update chained start heading ${selectedMotionChainConnection.toStart.uid}`
+              )
+            }
+            isValidIntermediate={() => true}
+            isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
+            disabled={app.selectedEntityCount !== 1}
+            numeric
+          />
+        </PanelBox>
+      )}
       <PanelBox flexWrap="wrap">
         <Typography variant="body2" sx={{ minWidth: "6.9rem" }}>
           Odom X: {getRobotOdomDisplay(robotOdom?.x)}

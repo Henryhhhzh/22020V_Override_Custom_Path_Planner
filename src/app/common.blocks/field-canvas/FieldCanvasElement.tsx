@@ -303,6 +303,46 @@ const PathControls = observer(
   }
 );
 
+const MotionChainHeadingOverlay = observer(
+  (props: { connections: MotionChainConnection[]; fcc: FieldCanvasConverter }) => {
+    const { connections, fcc } = props;
+    const cpRadius = fcc.heightInPx / 40;
+    const lineWidth = Math.max((fcc.heightInPx / 600) * 2.8, 2.5);
+
+    const renderHeading = (control: EndControl, color: string, key: string) => {
+      const cpInPx = fcc.toPx(control.toVector());
+      const theta = fromHeadingInDegreeToAngleInRadian(control.heading);
+
+      return (
+        <Line
+          key={key}
+          points={[
+            cpInPx.x,
+            cpInPx.y,
+            cpInPx.x + Math.cos(theta) * cpRadius * 1.45,
+            cpInPx.y - Math.sin(theta) * cpRadius * 1.45
+          ]}
+          stroke={color}
+          strokeWidth={lineWidth}
+          lineCap="round"
+          shadowColor="#000"
+          shadowBlur={2}
+          listening={false}
+        />
+      );
+    };
+
+    return (
+      <>
+        {connections.map(connection => [
+          renderHeading(connection.fromEnd, "#d6a73a", `${connection.fromEnd.uid}-end`),
+          renderHeading(connection.toStart, "#fff0a6", `${connection.toStart.uid}-start`)
+        ])}
+      </>
+    );
+  }
+);
+
 const SimulationGhostRobot = observer((props: { fcc: FieldCanvasConverter }) => {
   const { app } = getAppStores();
   const current = app.simulation.current;
@@ -899,6 +939,7 @@ const FieldCanvasElement = observer((props: {}) => {
             {visiblePaths.map(path => (
               <PathControls key={path.uid} path={path} fcc={fcc} motionChainConnections={motionChainConnections} />
             ))}
+            <MotionChainHeadingOverlay connections={motionChainConnections} fcc={fcc} />
             {app.gc.showRobot && app.robot.position.visible && (
               <RobotElement fcc={fcc} pos={app.robot.position} width={app.gc.robotWidth} height={app.gc.robotHeight} />
             )}
