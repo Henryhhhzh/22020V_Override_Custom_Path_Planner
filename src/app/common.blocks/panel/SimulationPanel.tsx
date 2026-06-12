@@ -6,6 +6,7 @@ import { PanelBox } from "@src/app/component.blocks/PanelBox";
 import { PanelBuilderProps, PanelInstanceProps } from "@core/Layout";
 import { getAppStores } from "@core/MainApp";
 import { SimulationMode, canUseRamseteSimulation, getEntireRouteSimulationPaths } from "@core/Simulation";
+import { MotionChainRouteStatus, getMotionChainRouteStatus } from "@core/MotionChain";
 
 import "./SimulationPanel.scss";
 
@@ -21,6 +22,20 @@ function formatStatus(status: string) {
   return status.charAt(0).toUpperCase() + status.slice(1);
 }
 
+function formatMotionChainStatus(status: MotionChainRouteStatus) {
+  if (status.ambiguousConnectionCount > 0) return `${status.ambiguousConnectionCount} ambiguous`;
+  if (status.unorderedConnectionCount > 0) return `${status.unorderedConnectionCount} out of order`;
+  if (status.disconnectedRouteBreakCount > 0) return `${status.disconnectedRouteBreakCount} break(s)`;
+
+  return "Ready";
+}
+
+function isMotionChainWarning(status: MotionChainRouteStatus) {
+  return (
+    status.ambiguousConnectionCount > 0 || status.unorderedConnectionCount > 0 || status.disconnectedRouteBreakCount > 0
+  );
+}
+
 const SimulationPanelBody = observer(() => {
   const { app } = getAppStores();
   const simulation = app.simulation;
@@ -31,6 +46,7 @@ const SimulationPanelBody = observer(() => {
   const entireRoutePathCount = getEntireRouteSimulationPaths(app).length;
   const isSelectedRun = simulation.isRunning && simulation.activeScope === "selected";
   const isEntireRun = simulation.isRunning && simulation.activeScope === "entire";
+  const motionChainStatus = getMotionChainRouteStatus(app);
 
   const onModeChange = action((event: SelectChangeEvent<SimulationMode>) => {
     simulation.mode = event.target.value as SimulationMode;
@@ -83,6 +99,17 @@ const SimulationPanelBody = observer(() => {
         </Typography>
         <Typography variant="body2" sx={{ minWidth: "11rem" }}>
           Current: {current?.path.name ?? "-"}
+        </Typography>
+      </PanelBox>
+      <PanelBox flexWrap="wrap">
+        <Typography variant="body2" sx={{ minWidth: "8rem" }}>
+          Chains: {motionChainStatus.connectedPairCount}
+        </Typography>
+        <Typography
+          variant="body2"
+          className={isMotionChainWarning(motionChainStatus) ? "SimulationPanel-Warning" : "SimulationPanel-Status"}
+          sx={{ minWidth: "9rem" }}>
+          Route: {formatMotionChainStatus(motionChainStatus)}
         </Typography>
       </PanelBox>
       <PanelBox flexWrap="wrap">
