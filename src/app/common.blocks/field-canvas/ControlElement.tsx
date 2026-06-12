@@ -394,7 +394,9 @@ const ControlElement = observer((props: ControlElementProps) => {
   }
 
   const lineWidth = props.fcc.heightInPx / 600;
-  const cpRadius = (props.fcc.heightInPx / 40) * (app.hoverItem === props.cp.uid ? 1.5 : 1);
+  const baseCpRadius = props.fcc.heightInPx / 40;
+  const cpRadius =
+    props.motionChainRole === undefined ? baseCpRadius * (app.hoverItem === props.cp.uid ? 1.5 : 1) : baseCpRadius;
   const cpInPx = props.fcc.toPx(props.cp.toVector()); // ALGO: Use toVector() for better performance
   const motionChainColor = props.motionChainRole === "fromEnd" ? "#d6a73a" : "#ffe08a";
   const fillColor =
@@ -427,12 +429,12 @@ const ControlElement = observer((props: ControlElementProps) => {
         <Circle
           x={cpInPx.x}
           y={cpInPx.y}
-          radius={cpRadius * 1.28}
+          radius={cpRadius}
           stroke={motionChainColor}
-          strokeWidth={Math.max(lineWidth * 2, 1.5)}
-          opacity={0.72}
+          strokeWidth={Math.max(lineWidth * 1.8, 1.2)}
+          opacity={0.68}
           shadowColor={motionChainColor}
-          shadowBlur={8}
+          shadowBlur={4}
           listening={false}
         />
       )}
@@ -454,7 +456,7 @@ const ControlElement = observer((props: ControlElementProps) => {
         onDragEnd={action(onDragEnd)}
         onClick={action(onClickFirstOrLastControlPoint)}
       />
-      {isEndControl && (
+      {isEndControl && props.motionChainRole === undefined && (
         <Line
           points={[
             cpInPx.x,
@@ -463,7 +465,7 @@ const ControlElement = observer((props: ControlElementProps) => {
             cpInPx.y - Math.sin(fromHeadingInDegreeToAngleInRadian((props.cp as EndControl).heading)) * cpRadius
           ]}
           stroke={headingStroke}
-          strokeWidth={props.motionChainRole === undefined ? lineWidth : Math.max(lineWidth * 2.1, 2)}
+          strokeWidth={lineWidth}
           listening={false}
         />
       )}
