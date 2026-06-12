@@ -397,6 +397,9 @@ const ControlElement = observer((props: ControlElementProps) => {
   const baseCpRadius = props.fcc.heightInPx / 40;
   const cpRadius =
     props.motionChainRole === undefined ? baseCpRadius * (app.hoverItem === props.cp.uid ? 1.5 : 1) : baseCpRadius;
+  const motionChainRingStrokeWidth = Math.max(lineWidth * 1.8, 1.2);
+  const motionChainRingRadius = baseCpRadius - motionChainRingStrokeWidth / 2;
+  const motionChainFillRadius = baseCpRadius * 0.62;
   const cpInPx = props.fcc.toPx(props.cp.toVector()); // ALGO: Use toVector() for better performance
   const motionChainColor = props.motionChainRole === "fromEnd" ? "#d6a73a" : "#ffe08a";
   const fillColor =
@@ -429,19 +432,19 @@ const ControlElement = observer((props: ControlElementProps) => {
         <Circle
           x={cpInPx.x}
           y={cpInPx.y}
-          radius={cpRadius}
+          radius={motionChainRingRadius}
           stroke={motionChainColor}
-          strokeWidth={Math.max(lineWidth * 1.8, 1.2)}
-          opacity={0.68}
+          strokeWidth={motionChainRingStrokeWidth}
+          opacity={0.82}
           shadowColor={motionChainColor}
-          shadowBlur={4}
+          shadowBlur={6}
           listening={false}
         />
       )}
       <Circle
         x={cpInPx.x}
         y={cpInPx.y}
-        radius={isEndControl ? cpRadius : cpRadius / 2}
+        radius={isEndControl ? (props.motionChainRole === undefined ? cpRadius : motionChainFillRadius) : cpRadius / 2}
         fill={fillColor}
         draggable
         onTouchStart={event => tiHandler.onKonvaTouchStart(event)}
