@@ -13,10 +13,10 @@
 }
 
 .ControlConfigPanel-MotionChainSection {
-  display: grid;
-  grid-template-columns: minmax(5.5rem, 0.8fr) minmax(8.5rem, 1.2fr) minmax(7rem, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-  align-items: center;
+  align-items: stretch;
   min-width: 0;
   width: 100%;
 }
@@ -24,10 +24,19 @@
 .ControlConfigPanel-MotionChainLabel {
   line-height: 1.15 !important;
   overflow-wrap: anywhere;
+  color: var(--primary-light-color);
 }
 
-@media (max-width: 520px) {
-  .ControlConfigPanel-MotionChainSection {
-    grid-template-columns: 1fr;
-  }
+.ControlConfigPanel-MotionChainSection .MuiFormControlLabel-root {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100%;
+}
+
+.ControlConfigPanel-MotionChainSection .MuiTextField-root {
+  width: 100%;
+}
+
+.ControlConfigPanel-MotionChainSection .MuiInputBase-root {
+  box-sizing: border-box;
 }
