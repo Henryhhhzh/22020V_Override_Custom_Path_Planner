@@ -1,7 +1,7 @@
 {
-  "short_name": "PATH.JERRYIO",
-  "name": "PATH.JERRYIO",
-  "description": "The best path editor in the VEX Robotics Competition for designing skills routes and generating path files.",
+  "short_name": "22020V Paths",
+  "name": "22020V Path Planner",
+  "description": "22020V Path Planner is a VEX autonomous path editor for designing routes, visualizing sensors, and exporting LemLib-compatible paths.",
   "icons": [
     {
       "src": "precache/favicon.ico",
@@ -29,8 +29,8 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#5C469C",
-  "background_color": "#FFFFFF",
+  "theme_color": "#9f1d2e",
+  "background_color": "#121212",
   "display_override": [
     "standalone",
     "browser",

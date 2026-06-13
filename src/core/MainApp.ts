@@ -30,6 +30,7 @@ import { LemLibFormatV1_0 } from "../format/LemLibFormatV1_0";
 import { UserInterface } from "./Layout";
 import { CoordinateSystem, Dimension, getNamedCoordinateSystems } from "./CoordinateSystem";
 import { SimulationController } from "./Simulation";
+import { APP_BRAND_NAME } from "./AppIdentity";
 
 export const APP_VERSION = new SemVer(APP_VERSION_STRING);
 
@@ -119,9 +120,9 @@ export class MainApp {
       () => this.mountingFile.handle,
       handle => {
         if (handle !== null) {
-          document.title = `${handle.name} | PATH.JERRYIO`;
+          document.title = `${handle.name} | ${APP_BRAND_NAME}`;
         } else {
-          document.title = "PATH.JERRYIO";
+          document.title = APP_BRAND_NAME;
         }
       }
     );

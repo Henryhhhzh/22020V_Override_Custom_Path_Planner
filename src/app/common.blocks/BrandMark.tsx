@@ -2,8 +2,7 @@ import { Box, Typography } from "@mui/material";
 import { getAppStores } from "@core/MainApp";
 import { AppThemeType } from "@app/Theme";
 import { observer } from "mobx-react-lite";
-
-export const APP_BRAND_NAME = "22020V Path Planner";
+import { APP_BRAND_NAME } from "@core/AppIdentity";
 
 export const BrandMark = observer((props: { variant?: "menu" | "dropdown" | "mobile"; showText?: boolean }) => {
   const { appPreferences } = getAppStores();
