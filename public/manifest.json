@@ -4,24 +4,24 @@
   "description": "22020V Path Planner is a VEX autonomous path editor for designing routes, visualizing sensors, and exporting LemLib-compatible paths.",
   "icons": [
     {
-      "src": "precache/22020v-favicon.ico",
+      "src": "precache/22020v-transparent-favicon.ico",
       "sizes": "48x48",
       "type": "image/x-icon"
     },
     {
-      "src": "static/22020v-icon-192.png",
+      "src": "static/22020v-transparent-icon-192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "static/22020v-icon-512.png",
+      "src": "static/22020v-transparent-icon-512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
     },
     {
-      "src": "static/22020v-icon-maskable.png",
+      "src": "static/22020v-transparent-icon-maskable.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
