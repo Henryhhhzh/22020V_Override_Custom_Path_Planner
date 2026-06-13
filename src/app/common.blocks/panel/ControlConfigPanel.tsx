@@ -31,6 +31,7 @@ import {
   isMotionChainDsrUsingPathHeading,
   isMotionChainUsingPathStartHeading
 } from "@core/MotionChain";
+import { getRamsetePreviewRobotPosition } from "@core/RamsetePreview";
 
 const LEMLIB_RAMSETE_BETA_FORMAT_NAME = "LemLib Ramsete Beta";
 
@@ -39,6 +40,7 @@ const ControlConfigPanelBody = observer((props: {}) => {
 
   const isDisabled = app.selectedControl === undefined;
   const isRamseteBetaFormat = app.format.getName() === LEMLIB_RAMSETE_BETA_FORMAT_NAME;
+  const referencedPath = app.interestedPath();
 
   const flipByAxisX = function () {
     const selectedControls = app.selectedEntities.filter(
@@ -113,7 +115,6 @@ const ControlConfigPanelBody = observer((props: {}) => {
     const control = app.selectedControl;
     if (control === undefined) return undefined;
 
-    const referencedPath = app.interestedPath();
     if (referencedPath === undefined) return undefined;
 
     const cs = app.coordinateSystem;
@@ -288,15 +289,19 @@ const ControlConfigPanelBody = observer((props: {}) => {
   const isDsrUsingPathHeading = isMotionChainDsrUsingPathHeading(app);
   const isDsrPreviewEnabled = isMotionChainDsrPreviewEnabled(app);
   const motionChainDsrPreviewPosition = getMotionChainDsrPreviewPosition(app);
+  const normalRobotPreviewPosition =
+    isRamseteBetaFormat && app.gc.showRobot && app.robot.position.visible
+      ? getRamsetePreviewRobotPosition(referencedPath, app.robot.position)
+      : app.robot.position;
   const robotReadoutPosition =
-    motionChainDsrPreviewPosition ?? (app.gc.showRobot && app.robot.position.visible ? app.robot.position : undefined);
+    motionChainDsrPreviewPosition ??
+    (app.gc.showRobot && app.robot.position.visible ? normalRobotPreviewPosition : undefined);
   const robotSensorReadings =
     robotReadoutPosition === undefined ? undefined : getRobotSensorReadings(app, robotReadoutPosition);
   const uolToInch = new UnitConverter(app.gc.uol, UnitOfLength.Inch);
   const getSensorLengthDisplay = (side: RobotSensorSide) =>
     robotSensorReadings === undefined ? "-" : `${uolToInch.fromAtoB(robotSensorReadings[side].length).toFixed(2)} in`;
   const robotCst: CoordinateSystemTransformation | undefined = (() => {
-    const referencedPath = app.interestedPath();
     if (referencedPath === undefined) return undefined;
 
     const cs = app.coordinateSystem;

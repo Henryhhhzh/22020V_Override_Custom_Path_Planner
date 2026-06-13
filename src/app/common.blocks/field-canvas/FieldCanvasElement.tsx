@@ -39,6 +39,7 @@ import {
   getMotionChainStartHeadingForConnection,
   isMotionChainDsrPreviewEnabledForConnection
 } from "@core/MotionChain";
+import { getRamsetePreviewRobotPosition } from "@core/RamsetePreview";
 
 const LEMLIB_RAMSETE_BETA_FORMAT_NAME = "LemLib Ramsete Beta";
 const DSR_FLASH_WINDOW_SECONDS = 0.36;
@@ -1035,6 +1036,10 @@ const FieldCanvasElement = observer((props: {}) => {
   const isRamseteBetaFormat = app.format.getName() === LEMLIB_RAMSETE_BETA_FORMAT_NAME;
   const isSimulationRunning = app.simulation.status === "running";
   const isVisiblePath = (path: Path | undefined) => path !== undefined && visiblePaths.includes(path);
+  const robotPreviewPosition =
+    isRamseteBetaFormat && app.gc.showRobot && app.robot.position.visible
+      ? getRamsetePreviewRobotPosition(interestedPath, app.robot.position)
+      : app.robot.position;
 
   return (
     <Padding0Tooltip
@@ -1109,7 +1114,12 @@ const FieldCanvasElement = observer((props: {}) => {
               <PathControls key={path.uid} path={path} fcc={fcc} motionChainConnections={motionChainConnections} />
             ))}
             {!isSimulationRunning && app.gc.showRobot && app.robot.position.visible && (
-              <RobotElement fcc={fcc} pos={app.robot.position} width={app.gc.robotWidth} height={app.gc.robotHeight} />
+              <RobotElement
+                fcc={fcc}
+                pos={robotPreviewPosition}
+                width={app.gc.robotWidth}
+                height={app.gc.robotHeight}
+              />
             )}
             {!isSimulationRunning && <MotionChainDsrRobotPreview fcc={fcc} />}
             <SimulationGhostRobot fcc={fcc} />
