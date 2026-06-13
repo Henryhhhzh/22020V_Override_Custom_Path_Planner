@@ -398,7 +398,7 @@ const ControlConfigPanelBody = observer((props: {}) => {
         )}
       </PanelBox>
       {selectedMotionChainConnection !== undefined && (
-        <PanelBox>
+        <PanelBox className="ControlConfigPanel-MotionChainBox">
           {!isRamseteBetaFormat && (
             <>
               <FormInputField
@@ -437,64 +437,76 @@ const ControlConfigPanelBody = observer((props: {}) => {
           )}
           {isRamseteBetaFormat && (
             <>
-              <Typography variant="body2">Movement Start</Typography>
-              <FormCheckbox
-                label="Use Path Heading"
-                title="Use the next path's starting Ramsete heading for the gold-point start heading"
-                checked={isUsingPathStartHeading}
-                onCheckedChange={setUsePathStartHeadingValue}
-              />
-              <FormInputField
-                label="Start Heading"
-                getValue={() => motionChainRamseteStartHeadingDisplay}
-                setValue={(value: string) =>
-                  setStartHeadingValue(
-                    selectedMotionChainConnection.toPath,
-                    selectedMotionChainConnection.toStart,
-                    value
-                  )
-                }
-                isValidIntermediate={() => true}
-                isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
-                disabled={app.selectedEntityCount !== 1}
-                sx={{
-                  "& .MuiInputBase-root": {
-                    backgroundColor: isUsingPathStartHeading ? "rgba(255, 255, 255, 0.08)" : undefined
+              <Box className="ControlConfigPanel-MotionChainSection">
+                <Typography variant="body2" className="ControlConfigPanel-MotionChainLabel">
+                  Movement Start
+                </Typography>
+                <FormCheckbox
+                  label="Use Path Heading"
+                  title="Use the next path's starting Ramsete heading for the gold-point start heading"
+                  checked={isUsingPathStartHeading}
+                  onCheckedChange={setUsePathStartHeadingValue}
+                />
+                <FormInputField
+                  label="Start Heading"
+                  getValue={() => motionChainRamseteStartHeadingDisplay}
+                  setValue={(value: string) =>
+                    setStartHeadingValue(
+                      selectedMotionChainConnection.toPath,
+                      selectedMotionChainConnection.toStart,
+                      value
+                    )
                   }
-                }}
-                numeric
-              />
+                  isValidIntermediate={() => true}
+                  isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
+                  disabled={app.selectedEntityCount !== 1}
+                  sx={{
+                    minWidth: 0,
+                    "& .MuiInputBase-root": {
+                      backgroundColor: isUsingPathStartHeading ? "rgba(255, 255, 255, 0.08)" : undefined
+                    }
+                  }}
+                  numeric
+                />
+              </Box>
             </>
           )}
-          {isRamseteBetaFormat && <Typography variant="body2">DSR Preview</Typography>}
-          <FormCheckbox
-            label="DSR"
-            title="Show robot outline and DSR sensor rays at this chained endpoint"
-            checked={isDsrPreviewEnabled}
-            onCheckedChange={setDsrPreviewEnabled}
-          />
-          <FormCheckbox
-            label="Use Path Heading"
-            title="Use the next path's starting Ramsete heading for DSR preview"
-            checked={isDsrUsingPathHeading}
-            onCheckedChange={setUsePathHeadingValue}
-          />
-          <FormInputField
-            label="DSR Heading"
-            getValue={() => motionChainDsrHeadingDisplay}
-            setValue={(value: string) =>
-              setDsrHeadingValue(selectedMotionChainConnection.toPath, selectedMotionChainConnection.toStart, value)
-            }
-            isValidIntermediate={() => true}
-            isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
-            disabled={app.selectedEntityCount !== 1}
-            sx={{
-              "& .MuiInputBase-root": {
-                backgroundColor: isDsrUsingPathHeading ? "rgba(255, 255, 255, 0.08)" : undefined
+          <Box className="ControlConfigPanel-MotionChainSection">
+            {isRamseteBetaFormat && (
+              <Typography variant="body2" className="ControlConfigPanel-MotionChainLabel">
+                DSR Preview
+              </Typography>
+            )}
+            <FormCheckbox
+              label="DSR"
+              title="Show robot outline and DSR sensor rays at this chained endpoint"
+              checked={isDsrPreviewEnabled}
+              onCheckedChange={setDsrPreviewEnabled}
+            />
+            <FormCheckbox
+              label="Use Path Heading"
+              title="Use the next path's starting Ramsete heading for DSR preview"
+              checked={isDsrUsingPathHeading}
+              onCheckedChange={setUsePathHeadingValue}
+            />
+            <FormInputField
+              label="DSR Heading"
+              getValue={() => motionChainDsrHeadingDisplay}
+              setValue={(value: string) =>
+                setDsrHeadingValue(selectedMotionChainConnection.toPath, selectedMotionChainConnection.toStart, value)
               }
-            }}
-            numeric
-          />
+              isValidIntermediate={() => true}
+              isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
+              disabled={app.selectedEntityCount !== 1}
+              sx={{
+                minWidth: 0,
+                "& .MuiInputBase-root": {
+                  backgroundColor: isDsrUsingPathHeading ? "rgba(255, 255, 255, 0.08)" : undefined
+                }
+              }}
+              numeric
+            />
+          </Box>
         </PanelBox>
       )}
       <PanelBox flexWrap="wrap">
