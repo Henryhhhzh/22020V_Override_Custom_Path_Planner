@@ -62,6 +62,8 @@ export class MainApp {
   public motionChainDsrPreviewConnectionKeys = new Set<string>();
   public motionChainDsrPreviewHeadings = new Map<string, number>();
   public motionChainDsrUsePathHeading = new Map<string, boolean>();
+  public motionChainStartHeadings = new Map<string, number>();
+  public motionChainUsePathStartHeading = new Map<string, boolean>();
 
   // null = loading, undefined = not available
   public latestVersion: SemVer | null | undefined = undefined;
@@ -327,6 +329,8 @@ export class MainApp {
     this.motionChainDsrPreviewConnectionKeys.clear();
     this.motionChainDsrPreviewHeadings.clear();
     this.motionChainDsrUsePathHeading.clear();
+    this.motionChainStartHeadings.clear();
+    this.motionChainUsePathStartHeading.clear();
   }
 
   resetAllEditors(): void {

@@ -170,6 +170,40 @@ function getPathStartRobotHeading(path: Path): number | undefined {
   return isRamsetePathBackwards(path) ? boundHeading(travelHeading + 180) : travelHeading;
 }
 
+export function getMotionChainDefaultStartHeadingForConnection(connection: MotionChainConnection): number {
+  return getPathStartRobotHeading(connection.toPath) ?? connection.toStart.heading;
+}
+
+export function isMotionChainUsingPathStartHeading(app: MainApp): boolean {
+  const connection = getSelectedMotionChainConnection(app);
+  if (connection === undefined) return true;
+
+  return isMotionChainConnectionUsingPathStartHeading(app, connection);
+}
+
+export function isMotionChainConnectionUsingPathStartHeading(app: MainApp, connection: MotionChainConnection): boolean {
+  const connectionKey = getMotionChainConnectionKey(connection);
+  return app.motionChainUsePathStartHeading.get(connectionKey) ?? true;
+}
+
+export function getMotionChainStartHeadingForConnection(app: MainApp, connection: MotionChainConnection): number {
+  const connectionKey = getMotionChainConnectionKey(connection);
+  const pathHeading = getMotionChainDefaultStartHeadingForConnection(connection);
+  if (isMotionChainConnectionUsingPathStartHeading(app, connection)) return pathHeading;
+
+  const storedHeading = app.motionChainStartHeadings.get(connectionKey);
+  if (storedHeading !== undefined) return storedHeading;
+
+  return pathHeading;
+}
+
+export function getMotionChainStartHeading(app: MainApp): number | undefined {
+  const connection = getSelectedMotionChainConnection(app);
+  if (connection === undefined) return undefined;
+
+  return getMotionChainStartHeadingForConnection(app, connection);
+}
+
 export function isMotionChainDsrUsingPathHeading(app: MainApp): boolean {
   const connection = getSelectedMotionChainConnection(app);
   if (connection === undefined) return true;
@@ -184,7 +218,7 @@ export function isMotionChainConnectionUsingPathHeading(app: MainApp, connection
 
 export function getMotionChainDsrPreviewHeadingForConnection(app: MainApp, connection: MotionChainConnection) {
   const connectionKey = getMotionChainConnectionKey(connection);
-  const pathHeading = getPathStartRobotHeading(connection.toPath) ?? connection.toStart.heading;
+  const pathHeading = getMotionChainDefaultStartHeadingForConnection(connection);
   if (isMotionChainConnectionUsingPathHeading(app, connection)) return pathHeading;
 
   const storedHeading = app.motionChainDsrPreviewHeadings.get(connectionKey);

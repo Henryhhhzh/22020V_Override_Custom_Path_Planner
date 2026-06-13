@@ -25,9 +25,11 @@ import {
   getMotionChainConnectionKey,
   getMotionChainDsrPreviewHeading,
   getMotionChainDsrPreviewPosition,
+  getMotionChainStartHeading,
   getSelectedMotionChainConnection,
   isMotionChainDsrPreviewEnabled,
-  isMotionChainDsrUsingPathHeading
+  isMotionChainDsrUsingPathHeading,
+  isMotionChainUsingPathStartHeading
 } from "@core/MotionChain";
 
 const LEMLIB_RAMSETE_BETA_FORMAT_NAME = "LemLib Ramsete Beta";
@@ -182,6 +184,35 @@ const ControlConfigPanelBody = observer((props: {}) => {
     app.motionChainDsrPreviewHeadings.set(connectionKey, newCoord.heading);
   };
 
+  const setStartHeadingValue = (path: Path, control: EndControl, value: string) => {
+    if (selectedMotionChainConnection === undefined) return;
+
+    const pathCst = getCoordinateSystemTransformation(path);
+    if (pathCst === undefined) return;
+
+    const coordInFCS = pathCst.transform(control);
+    const headingValueInFCS = parseFormula(value, NumberUOA.parse)!.compute(UnitOfAngle.Degree);
+    const newCoord = pathCst.inverseTransform({ ...coordInFCS, heading: headingValueInFCS });
+    const connectionKey = getMotionChainConnectionKey(selectedMotionChainConnection);
+
+    app.motionChainUsePathStartHeading.set(connectionKey, false);
+    app.motionChainStartHeadings.set(connectionKey, newCoord.heading);
+  };
+
+  const setUsePathStartHeadingValue = (value: boolean) => {
+    if (selectedMotionChainConnection === undefined) return;
+
+    const connectionKey = getMotionChainConnectionKey(selectedMotionChainConnection);
+    if (value) {
+      app.motionChainUsePathStartHeading.delete(connectionKey);
+      app.motionChainStartHeadings.delete(connectionKey);
+    } else {
+      const currentHeading = getMotionChainStartHeading(app);
+      app.motionChainUsePathStartHeading.set(connectionKey, false);
+      if (currentHeading !== undefined) app.motionChainStartHeadings.set(connectionKey, currentHeading);
+    }
+  };
+
   const setUsePathHeadingValue = (value: boolean) => {
     if (selectedMotionChainConnection === undefined) return;
 
@@ -237,6 +268,14 @@ const ControlConfigPanelBody = observer((props: {}) => {
     selectedMotionChainConnection === undefined
       ? ""
       : getHeadingDisplayValue(selectedMotionChainConnection.toPath, selectedMotionChainConnection.toStart);
+  const motionChainRamseteStartHeadingDisplay =
+    selectedMotionChainConnection === undefined
+      ? ""
+      : getRawHeadingDisplayValue(
+          selectedMotionChainConnection.toPath,
+          selectedMotionChainConnection.toStart,
+          getMotionChainStartHeading(app)
+        );
   const motionChainDsrHeadingDisplay =
     selectedMotionChainConnection === undefined
       ? ""
@@ -245,6 +284,7 @@ const ControlConfigPanelBody = observer((props: {}) => {
           selectedMotionChainConnection.toStart,
           getMotionChainDsrPreviewHeading(app)
         );
+  const isUsingPathStartHeading = isMotionChainUsingPathStartHeading(app);
   const isDsrUsingPathHeading = isMotionChainDsrUsingPathHeading(app);
   const isDsrPreviewEnabled = isMotionChainDsrPreviewEnabled(app);
   const motionChainDsrPreviewPosition = getMotionChainDsrPreviewPosition(app);
@@ -395,6 +435,38 @@ const ControlConfigPanelBody = observer((props: {}) => {
               />
             </>
           )}
+          {isRamseteBetaFormat && (
+            <>
+              <Typography variant="body2">Movement Start</Typography>
+              <FormCheckbox
+                label="Use Path Heading"
+                title="Use the next path's starting Ramsete heading for the gold-point start heading"
+                checked={isUsingPathStartHeading}
+                onCheckedChange={setUsePathStartHeadingValue}
+              />
+              <FormInputField
+                label="Start Heading"
+                getValue={() => motionChainRamseteStartHeadingDisplay}
+                setValue={(value: string) =>
+                  setStartHeadingValue(
+                    selectedMotionChainConnection.toPath,
+                    selectedMotionChainConnection.toStart,
+                    value
+                  )
+                }
+                isValidIntermediate={() => true}
+                isValidValue={(candidate: string) => parseFormula(candidate, NumberUOA.parse) !== null}
+                disabled={app.selectedEntityCount !== 1}
+                sx={{
+                  "& .MuiInputBase-root": {
+                    backgroundColor: isUsingPathStartHeading ? "rgba(255, 255, 255, 0.08)" : undefined
+                  }
+                }}
+                numeric
+              />
+            </>
+          )}
+          {isRamseteBetaFormat && <Typography variant="body2">DSR Preview</Typography>}
           <FormCheckbox
             label="DSR"
             title="Show robot outline and DSR sensor rays at this chained endpoint"

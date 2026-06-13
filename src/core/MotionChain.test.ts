@@ -10,9 +10,11 @@ import {
   getMotionChainRouteStatus,
   getMotionChainDsrPreviewHeading,
   getMotionChainDsrPreviewPosition,
+  getMotionChainStartHeading,
   getSelectedMotionChainConnection,
   getPathStartEndControls,
-  isMotionChainDsrUsingPathHeading
+  isMotionChainDsrUsingPathHeading,
+  isMotionChainUsingPathStartHeading
 } from "./MotionChain";
 import { LemLibFormatV0_4 } from "@format/LemLibFormatV0_4";
 
@@ -238,4 +240,69 @@ test("DSR path heading default respects reversed next path", () => {
   expect(isMotionChainDsrUsingPathHeading(app)).toBe(true);
   expect(getMotionChainDsrPreviewHeading(app)).toBe(270);
   expect(getMotionChainDsrPreviewPosition(app)).toMatchObject({ heading: 270 });
+});
+
+test("motion-chain start heading defaults to next path travel heading", () => {
+  const { app } = getAppStores();
+  const firstEnd = new EndControl(24, 0, 90);
+  addPath("First", new EndControl(0, 0, 0), firstEnd);
+  addPath("Second", new EndControl(24, 0, 180), new EndControl(48, 0, 180));
+
+  action(() => {
+    app.setSelected([firstEnd]);
+  })();
+
+  expect(isMotionChainUsingPathStartHeading(app)).toBe(true);
+  expect(getMotionChainStartHeading(app)).toBe(90);
+});
+
+test("motion-chain start heading default respects reversed next path", () => {
+  const { app } = getAppStores();
+  const firstEnd = new EndControl(24, 0, 90);
+  addPath("First", new EndControl(0, 0, 0), firstEnd);
+  const second = addPath("Second", new EndControl(24, 0, 180), new EndControl(48, 0, 180));
+
+  action(() => {
+    (second.pc as any).ramseteBackwards = true;
+    app.setSelected([firstEnd]);
+  })();
+
+  expect(isMotionChainUsingPathStartHeading(app)).toBe(true);
+  expect(getMotionChainStartHeading(app)).toBe(270);
+});
+
+test("motion-chain start heading override stays independent from DSR heading", () => {
+  const { app } = getAppStores();
+  const firstEnd = new EndControl(24, 0, 90);
+  addPath("First", new EndControl(0, 0, 0), firstEnd);
+  addPath("Second", new EndControl(24, 0, 180), new EndControl(48, 0, 180));
+
+  action(() => {
+    app.setSelected([firstEnd]);
+  })();
+
+  const connection = getSelectedMotionChainConnection(app)!;
+  const connectionKey = getMotionChainConnectionKey(connection);
+
+  action(() => {
+    app.motionChainUsePathStartHeading.set(connectionKey, false);
+    app.motionChainStartHeadings.set(connectionKey, 45);
+    app.motionChainDsrUsePathHeading.set(connectionKey, false);
+    app.motionChainDsrPreviewHeadings.set(connectionKey, 135);
+  })();
+
+  expect(getMotionChainStartHeading(app)).toBe(45);
+  expect(getMotionChainDsrPreviewHeading(app)).toBe(135);
+  expect(isMotionChainUsingPathStartHeading(app)).toBe(false);
+  expect(isMotionChainDsrUsingPathHeading(app)).toBe(false);
+
+  action(() => {
+    app.motionChainUsePathStartHeading.delete(connectionKey);
+    app.motionChainStartHeadings.delete(connectionKey);
+  })();
+
+  expect(getMotionChainStartHeading(app)).toBe(90);
+  expect(getMotionChainDsrPreviewHeading(app)).toBe(135);
+  expect(isMotionChainUsingPathStartHeading(app)).toBe(true);
+  expect(isMotionChainDsrUsingPathHeading(app)).toBe(false);
 });

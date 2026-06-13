@@ -36,6 +36,7 @@ import {
   getMotionChainDsrPreviewHeadingForConnection,
   getMotionChainDsrPreviewPosition,
   getMotionChainEndpointRole,
+  getMotionChainStartHeadingForConnection,
   isMotionChainDsrPreviewEnabledForConnection
 } from "@core/MotionChain";
 
@@ -393,6 +394,42 @@ const MotionChainHeadingOverlay = observer(
           renderHeading(connection.fromEnd, "#d6a73a", `${connection.fromEnd.uid}-end`),
           renderHeading(connection.toStart, "#fff0a6", `${connection.toStart.uid}-start`)
         ])}
+      </>
+    );
+  }
+);
+
+const MotionChainRamseteStartHeadingOverlay = observer(
+  (props: { connections: MotionChainConnection[]; fcc: FieldCanvasConverter }) => {
+    const { app } = getAppStores();
+    const { connections, fcc } = props;
+    const cpRadius = fcc.heightInPx / 40;
+    const lineWidth = Math.max(fcc.heightInPx / 430, 1.4);
+
+    return (
+      <>
+        {connections.map(connection => {
+          const cpInPx = fcc.toPx(connection.toStart.toVector());
+          const theta = fromHeadingInDegreeToAngleInRadian(getMotionChainStartHeadingForConnection(app, connection));
+
+          return (
+            <Line
+              key={`${connection.fromEnd.uid}-${connection.toStart.uid}-ramsete-start-heading`}
+              points={[
+                cpInPx.x,
+                cpInPx.y,
+                cpInPx.x + Math.cos(theta) * cpRadius * 1.15,
+                cpInPx.y - Math.sin(theta) * cpRadius * 1.15
+              ]}
+              stroke="#fff0a6"
+              strokeWidth={lineWidth}
+              lineCap="round"
+              shadowColor="#d6a73a"
+              shadowBlur={5}
+              listening={false}
+            />
+          );
+        })}
       </>
     );
   }
@@ -1086,6 +1123,9 @@ const FieldCanvasElement = observer((props: {}) => {
             <SimulationDsrFlashRobot fcc={fcc} connections={motionChainConnections} />
             <Group name="selected-controls" />
             {!isRamseteBetaFormat && <MotionChainHeadingOverlay connections={motionChainConnections} fcc={fcc} />}
+            {isRamseteBetaFormat && (
+              <MotionChainRamseteStartHeadingOverlay connections={motionChainConnections} fcc={fcc} />
+            )}
             <AreaSelectionElement
               from={fieldEditor.areaSelection?.from}
               to={fieldEditor.areaSelection?.to}
