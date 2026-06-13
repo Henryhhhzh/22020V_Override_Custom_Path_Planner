@@ -475,26 +475,19 @@ const SimulationDsrFlashRobot = observer(
       .filter(connection => isMotionChainDsrPreviewEnabledForConnection(app, connection))
       .forEach(connection => {
         const heading = getMotionChainDsrPreviewHeadingForConnection(app, connection);
-        const candidates = [
-          { path: connection.fromPath, time: "end" as const, point: connection.fromEnd },
-          { path: connection.toPath, time: "start" as const, point: connection.toStart }
-        ];
 
-        candidates.forEach(candidate => {
-          route.runs
-            .filter(run => run.path === candidate.path)
-            .forEach(run => {
-              const hitTime = candidate.time === "end" ? run.startTime + run.duration : run.startTime;
-              const delta = Math.abs(current.time - hitTime);
-              if (delta > DSR_FLASH_WINDOW_SECONDS) return;
-              if (bestFlash !== undefined && delta >= bestFlash.delta) return;
+        route.runs
+          .filter(run => run.path === connection.toPath)
+          .forEach(run => {
+            const delta = current.time - run.startTime;
+            if (delta <= 0 || delta > DSR_FLASH_WINDOW_SECONDS) return;
+            if (bestFlash !== undefined && delta >= bestFlash.delta) return;
 
-              bestFlash = {
-                delta,
-                pos: new EndControl(candidate.point.x, candidate.point.y, heading)
-              };
-            });
-        });
+            bestFlash = {
+              delta,
+              pos: new EndControl(connection.toStart.x, connection.toStart.y, heading)
+            };
+          });
       });
 
     if (bestFlash === undefined) return null;
