@@ -1,167 +1,148 @@
 <p align="center">
-	<a href="https://path.jerryio.com/"><img src="./public/static/logo464.svg" alt="IntroIcon" width="100"></a>
+  <a href="https://22020-v-override-custom-path-planne.vercel.app/">
+    <img src="./public/static/22020v-logo-red.png" alt="22020V logo" width="120">
+  </a>
 </p>
-<h3 align="center">PATH.JERRYIO</h3>
-<p align="center">The best path editor in VRC for designing skills routes and generating path files.</p>
+
+<h1 align="center">22020V Path Planner</h1>
+
+<p align="center">
+  A VEX autonomous path planner for designing routes, visualizing DSR sensors, simulating chained paths, and exporting LemLib-compatible Pure Pursuit or Ramsete trajectories.
+</p>
+
+<p align="center">
+  <a href="https://22020-v-override-custom-path-planne.vercel.app/">Open the live planner</a>
+  |
+  <a href="#quick-start">Quick start</a>
+  |
+  <a href="#attribution">Attribution</a>
+</p>
 
 ---
 
-## Introduction
+## About
 
-PATH.JERRYIO is a Progressive Web App (PWA) that is installable and can be used without an internet connection. It is available on any device with a web browser, including desktops, laptops, tablets, and mobile phones.
+22020V Path Planner is a modified GPL-3.0 fork of [PATH.JERRYIO](https://github.com/Jerrylum/path.jerryio) by Jerry Lum. The core canvas editor, path editing model, field interaction system, and original planner foundation come from Jerry's PATH.JERRYIO work.
 
-It is a powerful and flexible multi-purpose path editor/planner, which allows users to design and edit paths with intuitive click-and-drag interactions. After that, a readable path file can be generated for the robot, it will be used by the robot to travel the designed paths in the autonomous period with path-following algorithms.
+This fork keeps the original editor workflow while adding 22020V branding and team-specific autonomous planning tools for PROS/LemLib projects.
 
-![Screenshot of PATH.JERRYIO with a path in the editor](./assets/readme-banner.png)
+![22020V Path Planner editor overview](./assets/readme/editor-overview.png)
 
-## Demonstration
+## What This Fork Adds
 
-We aim to provide the best environment for path editing and planning within PATH.JERRYIO by focusing on delivering a user experience comparable to industry-grade graphing tools. Here are some examples showing how PATH.JERRYIO can be used:
+- Dark red 22020V visual theme and team logo branding.
+- V5RC 2027 Override field assets and 72 in by 72 in field sizing.
+- DSR-style sensor rays from the simulated robot with live front, right, back, and left distance readouts.
+- Sensor offset configuration in local robot coordinates.
+- `LemLib Ramsete Beta` custom export format.
+- Ramsete trajectory export rows:
 
-### Smooth and User-Friendly
-
-The dragging, panning, and area selection interaction continue even when the cursor is outside the canvas. This shows how much effort went into user experience with great attention to detail.
-
-![Example of dragging, panning, and area selection](./assets/editor-demo1.gif)
-
-### Intuitive and Straightforward
-
-It is designed to have a similar editing experience to other graphic design software. For example, press shift key to drag multiple controls, hold shift key to enable magnet snapping. The hotkeys, shortcuts and mouse gestures are similar and easy to catch up.
-
-![Example of zooming, panning, magnet, and selection](./assets/editor-demo2.gif)
-
-### Professional and Powerful
-
-You'll be amazed at what you can do with PATH.JERRYIO: hide or lock entities, undo/redo any changes you make, manipulate speed for every waypoint. It is the most powerful path editor in VRC.
-
-![Example of undo/redo and lock entities](./assets/editor-demo3.gif)
-
-## It Is for Everyone
-
-PATH.JERRYIO is created for everyone who takes part in the Vex Robotics Competition:
-
-### For Drivers
-
-This editor can be used to design routes for one-minute driver skill, allowing you to design, preview, and simulate driving routes in a more intuitive way, as well as share driving routes with others more easily.
-
-It is easy to get familiar with PATH.JERRYIO. It shares the same editing experience with other graphic design software, like Adobe XD, Sketch, Figma, etc. The hotkeys and mouse gestures are similar and easy to catch up.
-
-All the entities are listed in the Path Panel on the left. You can temporarily hide or lock them from being accidentally moved or adjusted. Since speed control, format settings, and the file format don’t really matter for you, you can hide the Speed Graph Panel and the Configuration Panel to get a cleaner user interface to focus on what you are working on.
-
-### For Programmers Using Vendor Library
-
-If you are using a library with path-following algorithms, and you need a path editor to design the path and generate path files, this is the one you are looking for.
-
-PATH.JERRYIO supports multiple output formats. We are working closely with many library developers to ensure the output files are generated correctly with maximum compatibility. That said, the output files can be opened again in PATH.JERRYIO(also in the future), read by the robot, and can also opened in the library’s path editor too(if there is one)
-
-Select the library you are using in the editor, and you will be able to generate path files with access to all the configuration dedicated to the format you are using.
-
-PATH.JERRYIO is designed to be flexible and extensible. It supports multiple interchangeable output formats. That said, even if the library you are using releases a new version with a different path file format in the future, you can still open the old path file in the editor, and upgrade it to the new one.
-
-### For Library Developers
-
-PATH.JERRYIO can be used to generate path files in any format. It is not just a path file generator for a specific library. Library developers can create a new format, and submit a pull request to add it to the editor.
-
-Depending on the path-following algorithm, what is included in the path file, can be different. For example, a library using pure pursuit may need the coordinate, heading and speed of the path waypoints, while a library using motion profiling may only need the coordinate of the segment control points.
-
-By using PATH.JERRYIO, you only need to implement the path file parser and generator with an easy-to-use API. You can focus on the path file format, path-following algorithm, and the code used in the robot, without spending time on the editor and user interface.
-
-## Main Features
-
-### Functionality
-
-- Use Bézier curves with full control over the shape of each segment
-- Add/Delete control points with mouse click
-- Split segment or change segment type with mouse click
-- Split path into multiple paths
-- Edit the exact coordinate of each control point and end point
-- Edit the heading of each end point, support Holonomic drive and Differential drive (See data structure section for more detail)
-- Delete multiple control points all at once
-- Undo/Redo support
-- Cut/Copy/Paste paths and control points
-- Reorder paths and control points
-- Real-time path preview
-- Handle multiple paths with custom names at the same time
-- Reorder path automatically based on the path name
-- Manipulate speed, acceleration, deceleration in detail with speed profile and keyframe
-- Set minimum and maximum speed limits, curve deceleration for each path
-- Generate evenly-spaced waypoints with customizable point density
-- Save files locally on the computer with ease (Meaning that it is not required to download a new file every time a change is made)
-- Interchangeable path file format in the editor
-- Support multiple output format with path editor data included
-- Support using any unit of length, even if it differs from the one in the format
-- Support exporting path files with different coordinate systems, unit of length, and more
-- Unsaved change warning
-- Robot simulation with customizable robot size
-- Robot pure pursuit simulation (Coming soon)
-- Progressive Web App use without installation
-- Auto update
-- Offline support
-
-### Editing Experience
-
-- Hidden shortcut keys and details which can greatly improve your work efficiency
-- Zoom in/out with ctrl + mouse wheel while keeping zoom center at the cursor
-- Panning support, works outside the canvas
-- Interactive control points with mouse drag
-- Align to other control points with magnetic effect
-- Select/Invert select multiple control points
-- Move multiple control points all at once
-- Move the end point with or without its handle altogether
-- Change end points’ heading with mouse wheel
-- Excellent coordinate input support with unit conversion, expression evaluation, arrow key support, and more
-- Path tree view with all paths and control points listed
-- Lock/Unlock path and control points, to prevent accidental modification
-- Hide/Show paths and control points, to allow better view of other paths
-- Visualize speed with color
-- Customizable editor panels
-- Hotkey support
-- Drag & Drop to open path file
-- Exclusive editing mode
-- Light and dark theme
-- iPad support
-
-## Usage and Documentation
-
-Please visit our [wiki page](https://github.com/Jerrylum/path.jerryio/wiki) to understand how to get started with PATH.JERRYIO.
-
-## Self-hosting
-
-You can self-host PATH.JERRYIO by running the following command:
-
-```bash
-# -d is for detached mode, which will run the container in the background
-docker compose up -d
+```txt
+time_s, x_in, y_in, theta_rad, v_ips, omega_radps
 ```
 
-If a new version is released, you can pull the latest version from GitHub and run the container again:
+- Wheel RPM and wheel diameter inputs that compute Ramsete max velocity.
+- Whole-path reverse support using negative `v_ips` for reversed Ramsete paths.
+- Path playback simulation for the selected path or the full visible route.
+- Motion-chain endpoint snapping with gold connected-point indicators.
+- DSR preview controls for chained points.
 
-```bash
-# pull the latest changes from GitHub
-git pull
-# --build is for building the container again
-docker compose up -d --build
+![LemLib Ramsete Beta configuration](./assets/readme/ramsete-beta.png)
+
+## Quick Start
+
+1. Open the hosted app:
+   [https://22020-v-override-custom-path-planne.vercel.app/](https://22020-v-override-custom-path-planne.vercel.app/)
+2. Pick a format in `Configuration`.
+   - Use `LemLib v0.5` for the original Pure Pursuit style export.
+   - Use `LemLib Ramsete Beta` for time-based Ramsete trajectories.
+3. Draw or edit paths on the field.
+4. For Ramsete, set wheel RPM, wheel diameter, timestep, and acceleration.
+5. Use `Simulate` to run the selected path or the full route.
+6. Export the path file and load it in your robot project.
+
+## Ramsete Export
+
+`LemLib Ramsete Beta` exports one selected path as a time-based trajectory. The file rows are intended for a robot-side Ramsete controller:
+
+```txt
+# RAMSETE v1
+# time_s, x_in, y_in, theta_rad, v_ips, omega_radps
+0.000, 0.000, 0.000, 0.000, 0.000, 0.000
+0.020, 0.250, 0.000, 0.000, 12.500, 0.000
+endData
+#PATH.JERRYIO-DATA ...
 ```
 
-## Contributing
+Notes:
 
-We welcome contributions from everyone. Before you get started, please see our [contributor's guide](./CONTRIBUTING.md).
+- `x_in` and `y_in` are LemLib-style odom inches.
+- `theta_rad` follows the path tangent for forward paths.
+- Reversed paths use `theta_rad = tangent + pi` and negative `v_ips`.
+- Robot-side constants such as `b`, `zeta`, and drivetrain track width stay in robot code.
+- `#PATH.JERRYIO-DATA` is kept after `endData` so the planner can reopen exported files.
 
-## Contributors
+## DSR And Sensors
 
-We work closely with the community and library developers. We would like to thank the following contributors for their contributions to PATH.JERRYIO:
+The robot preview can show four red sensor rays. Each sensor has a local robot offset:
 
-<a href="https://github.com/BattleCh1cken" title="Felix Hass"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/75806385?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/COMMANDERWONG" title="COMMANDERWONG"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/37576365?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/Cooper7196" title="Cooper7196"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/26489493?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/Exortions" title="Exortions"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/75327059?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/JohnDoeAntler" title="John Doe Antler"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/16289028?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/Mustang8192" title="Samy Chirumamilla"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/107894608?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/Rocky14683" title="THERocky"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/101498190?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/SGD2718" title="Benjamin Lee"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/48599511?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/SizzinSeal" title="Liam Teale"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/111480281?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/SunkenSplash" title="William Castro"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/62484109?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/crapper" title="Fakeye"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/26902835?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/johnnylam123" title="johnnylam123"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/72603940?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/meisZWFLZ" title="Andrew Curtis"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/80860310?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
-<a href="https://github.com/sufferiing" title="Maddy Scott"><img src="https://images.weserv.nl/?url=https://avatars.githubusercontent.com/u/11135808?v=4&mask=circle&maxage=7d" alt="" width="10%"/></a>
+- `x` is side-to-side relative to robot center.
+- `y` is front/back relative to robot center.
+- Ray lengths stop at field walls.
+- Live readings appear in the Control panel.
+
+For chained gold points, DSR preview can be enabled separately. The DSR heading can either follow the next path's start heading or be manually overridden.
+
+## Motion Chaining
+
+When the end of one path is dragged close to the start of another path, the helper can snap the two endpoints together. They stay as separate endpoints, so each path can keep its own settings.
+
+Use this for autonomous routines where each movement is a separate Ramsete file or action:
+
+- Split when you need a stop, turn, intake action, clamp action, or DSR reset.
+- Use `Reverse path` when the robot should traverse the whole path backwards.
+- Use `Run Entire Route` to visually check the chain order.
+
+## Local Development
+
+```bash
+npm install
+npm start
+```
+
+Build a production copy:
+
+```bash
+npm run build
+```
+
+Run the checks used during development:
+
+```bash
+npm run check-format
+npm test -- --watchAll=false
+```
+
+## Deploying
+
+This project deploys cleanly as a static React app.
+
+Recommended Vercel settings:
+
+- Framework preset: `Create React App`
+- Build command: `npm run build`
+- Output directory: `build`
+
+Any push to the connected GitHub repository can automatically redeploy the public site.
+
+## Attribution
+
+This project is a fork of [PATH.JERRYIO](https://github.com/Jerrylum/path.jerryio), originally created by [Jerry Lum](https://github.com/Jerrylum).
+
+Important credit:
+
+- Jerry Lum created the original PATH.JERRYIO canvas editor and planner foundation.
+- The core path editing interactions, canvas architecture, import/export foundation, and much of the app structure are inherited from PATH.JERRYIO.
+- 22020V Path Planner modifies that GPL-3.0 project with team branding, DSR visualization, Ramsete export/simulation work, and motion-chaining helpers.
+
+The project remains licensed under GPL-3.0. See [LICENSE](./LICENSE).
